@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import ClassVar, Iterable
+from typing import ClassVar
 
 from mangoguard.schema import BlockObservation, ConnectorSource
 from mangoguard.store import FeedStore
+
+_INSERT_CHUNK_SIZE = 500
 
 
 @dataclass(slots=True)
@@ -27,26 +30,31 @@ class ConnectorContext:
 
 
 class Connector(ABC):
-    """Base class for all data-source connectors."""
+    """Base class for all data-source connectors.
+
+    Concrete subclasses declare two ClassVars (``source`` and ``name``);
+    ``__init_subclass__`` validates them at class-definition time so misuse
+    surfaces immediately, not at first instantiation.
+    """
 
     source: ClassVar[ConnectorSource]
     name: ClassVar[str]
 
-    def __init__(self, ctx: ConnectorContext) -> None:
-        cls = type(self)
-        if (
-            not hasattr(cls, "source")
-            or "source" not in cls.__dict__
-            and not any("source" in base.__dict__ for base in cls.__mro__ if base is not Connector)
-        ):
-            msg = f"{cls.__name__} must set class attr `source`"
-            raise TypeError(msg)
-        if not isinstance(getattr(cls, "source", None), ConnectorSource):
+    def __init_subclass__(cls, **kwargs: object) -> None:
+        super().__init_subclass__(**kwargs)
+        # Allow further abstract subclasses (those that don't override fetch).
+        if getattr(cls, "__abstractmethods__", None):
+            return
+        source = cls.__dict__.get("source", getattr(cls, "source", None))
+        if not isinstance(source, ConnectorSource):
             msg = f"{cls.__name__}.source must be a ConnectorSource enum value"
             raise TypeError(msg)
-        if not isinstance(getattr(cls, "name", None), str) or not cls.name:
+        name = cls.__dict__.get("name", getattr(cls, "name", None))
+        if not isinstance(name, str) or not name:
             msg = f"{cls.__name__} must set class attr `name` (non-empty string)"
             raise TypeError(msg)
+
+    def __init__(self, ctx: ConnectorContext) -> None:
         self.ctx = ctx
 
     @abstractmethod
@@ -55,14 +63,22 @@ class Connector(ABC):
         raise NotImplementedError
 
     def run(self, since: datetime, until: datetime) -> int:
-        observations = list(self.fetch(since=since, until=until))
-        for obs in observations:
+        store = self.ctx.require_store()
+        batch: list[BlockObservation] = []
+        total = 0
+        for obs in self.fetch(since=since, until=until):
             if obs.source != self.source:
                 msg = (
                     f"source mismatch: connector {self.name} declared "
                     f"{self.source} but yielded {obs.source}"
                 )
                 raise ValueError(msg)
-        store = self.ctx.require_store()
-        store.insert_many(observations)
-        return len(observations)
+            batch.append(obs)
+            if len(batch) >= _INSERT_CHUNK_SIZE:
+                store.insert_many(batch)
+                total += len(batch)
+                batch = []
+        if batch:
+            store.insert_many(batch)
+            total += len(batch)
+        return total

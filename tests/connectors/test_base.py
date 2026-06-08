@@ -1,7 +1,7 @@
 """Tests for the Connector ABC + ConnectorContext."""
 
+from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
-from typing import Iterable
 
 import pytest
 
@@ -22,15 +22,44 @@ class _DummyConnector(Connector):
 
 
 def test_connector_requires_source_class_attr():
-    class BadConnector(Connector):
-        name = "bad"
+    with pytest.raises(TypeError, match="source"):
+        type(
+            "BadConnectorMissingSource",
+            (Connector,),
+            {"name": "bad", "fetch": lambda self, since, until: []},
+        )
 
-        def fetch(self, since, until):
-            return []
 
+def test_connector_requires_source_to_be_enum():
+    with pytest.raises(TypeError, match="source"):
+        type(
+            "BadConnectorStringSource",
+            (Connector,),
+            {
+                "source": "imd",
+                "name": "bad",
+                "fetch": lambda self, since, until: [],
+            },
+        )
+
+
+def test_connector_requires_name_class_attr():
+    with pytest.raises(TypeError, match="name"):
+        type(
+            "BadConnectorEmptyName",
+            (Connector,),
+            {
+                "source": ConnectorSource.IMD,
+                "name": "",
+                "fetch": lambda self, since, until: [],
+            },
+        )
+
+
+def test_require_store_raises_when_none():
     ctx = ConnectorContext()
-    with pytest.raises(TypeError):
-        BadConnector(ctx)
+    with pytest.raises(RuntimeError, match="store is required"):
+        ctx.require_store()
 
 
 def test_connector_run_writes_to_store(store):
