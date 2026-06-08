@@ -2,12 +2,20 @@
 
 Natural key: `(block_id, ts, source)`. Re-inserting the same key updates the row
 (`INSERT OR REPLACE`), so connectors can re-run on a window idempotently.
+
+Stored timestamps are ISO 8601 strings of the original tz-aware datetime; query
+bounds are normalized to UTC before lexicographic comparison so callers may
+safely pass any tz-aware datetime without producing wrong-result bugs from
+mixed-zone strings.
+
+The connection is opened with sqlite3's default `check_same_thread=True`. Do
+not share a single FeedStore across threads — create one per worker.
 """
 
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Iterable
 
 from mangoguard.schema import BlockObservation, ConnectorSource
@@ -93,17 +101,21 @@ class FeedStore:
         ts_start: datetime,
         ts_end: datetime,
     ) -> list[BlockObservation]:
+        # Normalize query bounds to UTC so lexicographic ISO comparison matches
+        # chronological order regardless of caller's input timezone.
+        start_utc = ts_start.astimezone(timezone.utc).isoformat()
+        end_utc = ts_end.astimezone(timezone.utc).isoformat()
         cur = self._conn.execute(
             "SELECT * FROM observations "
             "WHERE block_id = ? AND ts >= ? AND ts < ? "
             "ORDER BY ts ASC, source ASC",
-            (block_id, ts_start.isoformat(), ts_end.isoformat()),
+            (block_id, start_utc, end_utc),
         )
         return [self._row_to_obs(r) for r in cur.fetchall()]
 
     def query_by_source(self, source: ConnectorSource) -> list[BlockObservation]:
         cur = self._conn.execute(
-            "SELECT * FROM observations WHERE source = ? ORDER BY ts ASC",
+            "SELECT * FROM observations WHERE source = ? " "ORDER BY ts ASC, block_id ASC",
             (source.value,),
         )
         return [self._row_to_obs(r) for r in cur.fetchall()]

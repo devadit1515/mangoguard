@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from mangoguard.schema import BlockObservation, ConnectorSource
+from mangoguard.store import _COLUMNS, FeedStore
 
 
 def test_store_initializes_empty(store):
@@ -64,8 +65,37 @@ def test_round_trip_preserves_optional_fields(store, sample_observation):
         ts_end=sample_observation.ts + timedelta(seconds=1),
     )
     rt = rows[0]
+    assert rt.ts == sample_observation.ts
+    assert rt.ts.tzinfo is not None
     assert rt.t_air_c == pytest.approx(sample_observation.t_air_c)
     assert rt.rh_pct == pytest.approx(sample_observation.rh_pct)
     assert rt.leaf_wetness_hr == pytest.approx(sample_observation.leaf_wetness_hr)
     assert rt.precip_mm == pytest.approx(sample_observation.precip_mm)
     assert rt.source == sample_observation.source
+
+
+def test_query_normalizes_non_utc_bounds(store, sample_observation):
+    """Callers may pass non-UTC tz-aware bounds; query must normalize correctly."""
+    ist = timezone(timedelta(hours=5, minutes=30))
+    store.insert(sample_observation)
+    # sample_observation.ts is 2026-07-12 10:30 UTC == 16:00 IST.
+    ts_start_ist = sample_observation.ts.astimezone(ist) - timedelta(minutes=1)
+    ts_end_ist = sample_observation.ts.astimezone(ist) + timedelta(minutes=1)
+
+    rows = store.query(block_id="B3", ts_start=ts_start_ist, ts_end=ts_end_ist)
+
+    assert len(rows) == 1
+    assert rows[0].ts == sample_observation.ts
+
+
+def test_columns_constant_matches_obs_to_row_arity():
+    """`_COLUMNS` and `_obs_to_row` must stay in sync — same length always."""
+    obs = BlockObservation(
+        block_id="B1",
+        ts=datetime(2026, 7, 12, tzinfo=timezone.utc),
+        source=ConnectorSource.IMD,
+    )
+    row = FeedStore._obs_to_row(obs)
+    assert len(row) == len(
+        _COLUMNS
+    ), f"_obs_to_row arity ({len(row)}) drifted from _COLUMNS length ({len(_COLUMNS)})"
