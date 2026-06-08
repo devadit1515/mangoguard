@@ -1,0 +1,23 @@
+# Streamlit Community Cloud / local-dev shared config.
+# See https://docs.streamlit.io/library/advanced-features/configuration for full options.
+
+[theme]
+# Mango-themed light palette — final styling deferred to Plan 6 dashboard work.
+base = "light"
+primaryColor = "#F97316"             # amber-500 (mango skin)
+backgroundColor = "#FFFBEB"           # amber-50
+secondaryBackgroundColor = "#FEF3C7"  # amber-100
+textColor = "#1F2937"                 # gray-800
+font = "sans serif"
+
+[server]
+headless = true
+enableXsrfProtection = true
+enableCORS = false
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = true
+toolbarMode = "minimal"

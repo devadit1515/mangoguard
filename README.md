@@ -1,3 +1,16 @@
+---
+title: MangoGuard
+emoji: 🥭
+colorFrom: yellow
+colorTo: red
+sdk: streamlit
+sdk_version: "1.34.0"
+app_file: streamlit_app.py
+pinned: false
+license: mit
+short_description: AI orchard-management & MRL-aware spray-audit system for Indian Alphonso mango growers.
+---
+
 # MangoGuard
 
 AI orchard-management & MRL-aware spray-audit system for mid-sized Indian Alphonso mango growers.

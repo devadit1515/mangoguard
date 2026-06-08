@@ -1,0 +1,19 @@
+# Deploy-time deps for Streamlit Community Cloud + Hugging Face Spaces.
+# Local dev installs the full editable package via `pip install -e ".[dev,ml,...]"`,
+# but cloud runners read this file. Keep the surface MINIMAL — heavy ML/geo/scrape
+# extras are pulled in conditionally by Plan 5/6 pages on demand.
+
+# Core
+pydantic>=2.6
+pyyaml>=6.0
+python-dateutil>=2.9
+requests>=2.31
+
+# Dashboard
+streamlit>=1.34
+altair>=5.3
+pillow>=10.3
+
+# Install the local package so the dashboard can import mangoguard.* modules.
+# (`pip install .` runs against the pyproject.toml at repo root.)
+.
