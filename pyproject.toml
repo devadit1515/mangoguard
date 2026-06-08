@@ -71,6 +71,7 @@ select = ["E", "F", "I", "B", "UP", "N", "SIM", "RET", "PL"]
 ignore = [
     "PLR0913",   # too-many-arguments: schema constructors need many
     "UP017",     # datetime.UTC alias: verbose form is grep-friendly + explicit
+    "UP035",     # typing.Iterable: kept for parity with verbatim plan source; equivalent to collections.abc.Iterable
     "UP042",     # StrEnum: project uses (str, Enum) for explicit multi-inheritance
 ]
 
