@@ -133,6 +133,11 @@ class FeedStore:
         )
         return [self._row_to_obs(r) for r in cur.fetchall()]
 
+    def count_by_source(self) -> dict[ConnectorSource, int]:
+        """Return ``{source: row_count}`` across all observations."""
+        cur = self._conn.execute("SELECT source, COUNT(*) AS n FROM observations GROUP BY source")
+        return {ConnectorSource(row["source"]): row["n"] for row in cur.fetchall()}
+
     def close(self) -> None:
         self._conn.close()
 

@@ -112,3 +112,14 @@ def test_columns_constant_matches_block_observation_fields():
     from mangoguard.store import _COLUMNS  # noqa: PLC0415
 
     assert set(_COLUMNS) == set(BlockObservation.model_fields)
+
+
+def test_count_by_source(store, sample_observations):
+    store.insert_many(sample_observations)
+    extra = sample_observations[0].model_copy(
+        update={"source": ConnectorSource.PESSL, "block_id": "B9"}
+    )
+    store.insert(extra)
+    counts = store.count_by_source()
+    assert counts[ConnectorSource.IMD] == len(sample_observations)
+    assert counts[ConnectorSource.PESSL] == 1
