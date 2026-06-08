@@ -1,5 +1,5 @@
 """Tests for the unified per-block-per-timestamp observation schema."""
-# ruff: noqa: UP017, PLR2004
+# ruff: noqa: UP017, PLR2004, I001
 
 from datetime import datetime, timezone
 
