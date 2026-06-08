@@ -99,3 +99,16 @@ def test_columns_constant_matches_obs_to_row_arity():
     assert len(row) == len(
         _COLUMNS
     ), f"_obs_to_row arity ({len(row)}) drifted from _COLUMNS length ({len(_COLUMNS)})"
+
+
+def test_columns_constant_matches_block_observation_fields():
+    """Guards against silent drift between BlockObservation fields and store columns.
+
+    If a new field is added to BlockObservation without being added to
+    _COLUMNS (and the corresponding read/write helpers), round-trips silently
+    drop data. This test fails loudly in that case.
+    """
+    from mangoguard.schema import BlockObservation  # noqa: PLC0415
+    from mangoguard.store import _COLUMNS  # noqa: PLC0415
+
+    assert set(_COLUMNS) == set(BlockObservation.model_fields)

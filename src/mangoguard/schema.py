@@ -60,10 +60,37 @@ class BlockObservation(BaseModel):
 
     notes: str | None = Field(None, max_length=512)
 
+    # --- audit trail (set by Connector.run, not by the connector itself) ---
+    ingested_at: datetime | None = Field(
+        default=None,
+        description="UTC timestamp when this row was written to the store. "
+        "Set by Connector.run, not part of the natural key.",
+    )
+    connector_run_id: str | None = Field(
+        default=None,
+        max_length=36,
+        description="UUID4 identifying the Connector.run() invocation that produced this row.",
+    )
+    quality_flag: str | None = Field(
+        default=None,
+        max_length=32,
+        description="Free-text quality hint: 'estimated', 'interpolated', 'ocr_low_conf', etc.",
+    )
+
     @field_validator("ts")
     @classmethod
     def _ts_must_be_aware(cls, v: datetime) -> datetime:
         if v.tzinfo is None or v.tzinfo.utcoffset(v) is None:
             msg = "ts must be timezone-aware (got naive datetime)"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("ingested_at")
+    @classmethod
+    def _ingested_at_must_be_aware_or_none(cls, v: datetime | None) -> datetime | None:
+        if v is None:
+            return v
+        if v.tzinfo is None or v.tzinfo.utcoffset(v) is None:
+            msg = "ingested_at must be timezone-aware (got naive datetime)"
             raise ValueError(msg)
         return v

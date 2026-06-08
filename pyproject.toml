@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mangoguard"
-version = "0.1.0"
+version = "0.1.1"
 description = "AI orchard-management & MRL-aware spray-audit system for Indian Alphonso mango growers"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -75,7 +75,6 @@ select = ["E", "F", "I", "B", "UP", "N", "SIM", "RET", "PL"]
 ignore = [
     "PLR0913",   # too-many-arguments: schema constructors need many
     "UP017",     # datetime.UTC alias: verbose form is grep-friendly + explicit
-    "UP035",     # typing.Iterable: kept for parity with verbatim plan source; equivalent to collections.abc.Iterable
     "UP042",     # StrEnum: project uses (str, Enum) for explicit multi-inheritance
 ]
 

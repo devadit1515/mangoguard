@@ -15,8 +15,9 @@ not share a single FeedStore across threads — create one per worker.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Iterable
 
 from mangoguard.schema import BlockObservation, ConnectorSource
 
@@ -24,7 +25,10 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS observations (
     block_id        TEXT NOT NULL,
     ts              TEXT NOT NULL,
-    source          TEXT NOT NULL,
+    source          TEXT NOT NULL CHECK (source IN (
+        'fyllo','fasal','pessl','imd','plantix',
+        'agmarknet','dbskkv','cropsap','sentinel2','csv_fallback'
+    )),
     t_air_c         REAL,
     rh_pct          REAL,
     leaf_wetness_hr REAL,
@@ -39,6 +43,9 @@ CREATE TABLE IF NOT EXISTS observations (
     cropsap_pest_pressure REAL,
     mandi_modal_price_inr_per_quintal REAL,
     notes           TEXT,
+    ingested_at     TEXT,
+    connector_run_id TEXT,
+    quality_flag    TEXT,
     PRIMARY KEY (block_id, ts, source)
 );
 
@@ -46,7 +53,7 @@ CREATE INDEX IF NOT EXISTS idx_obs_block_ts ON observations (block_id, ts);
 CREATE INDEX IF NOT EXISTS idx_obs_source   ON observations (source);
 """
 
-_COLUMNS = [
+_COLUMNS = (
     "block_id",
     "ts",
     "source",
@@ -64,7 +71,10 @@ _COLUMNS = [
     "cropsap_pest_pressure",
     "mandi_modal_price_inr_per_quintal",
     "notes",
-]
+    "ingested_at",
+    "connector_run_id",
+    "quality_flag",
+)
 
 
 class FeedStore:
@@ -98,6 +108,12 @@ class FeedStore:
         ts_start: datetime,
         ts_end: datetime,
     ) -> list[BlockObservation]:
+        """Return observations for ``block_id`` in the half-open window ``[ts_start, ts_end)``.
+
+        Both bounds are normalized to UTC before string comparison, so naive
+        tz-aware inputs in any zone produce the same result. Rows are returned
+        ordered by ``ts ASC, source ASC`` for deterministic downstream behavior.
+        """
         # Normalize query bounds to UTC so lexicographic ISO comparison matches
         # chronological order regardless of caller's input timezone.
         start_utc = ts_start.astimezone(timezone.utc).isoformat()
@@ -120,6 +136,23 @@ class FeedStore:
     def close(self) -> None:
         self._conn.close()
 
+    @contextmanager
+    def transaction(self) -> Iterator[None]:
+        """Context manager wrapping a single SQLite transaction.
+
+        Yields, then commits on success or rolls back on any exception. Useful
+        for grouping a multi-batch ``Connector.run`` write so a half-failed
+        pull does not leave partial state visible.
+        """
+        self._conn.execute("BEGIN")
+        try:
+            yield
+        except Exception:
+            self._conn.execute("ROLLBACK")
+            raise
+        else:
+            self._conn.execute("COMMIT")
+
     @staticmethod
     def _obs_to_row(o: BlockObservation) -> tuple:
         return (
@@ -140,10 +173,14 @@ class FeedStore:
             o.cropsap_pest_pressure,
             o.mandi_modal_price_inr_per_quintal,
             o.notes,
+            o.ingested_at.isoformat() if o.ingested_at is not None else None,
+            o.connector_run_id,
+            o.quality_flag,
         )
 
     @staticmethod
     def _row_to_obs(r: sqlite3.Row) -> BlockObservation:
+        ingested_at_raw = r["ingested_at"]
         return BlockObservation(
             block_id=r["block_id"],
             ts=datetime.fromisoformat(r["ts"]),
@@ -162,4 +199,7 @@ class FeedStore:
             cropsap_pest_pressure=r["cropsap_pest_pressure"],
             mandi_modal_price_inr_per_quintal=r["mandi_modal_price_inr_per_quintal"],
             notes=r["notes"],
+            ingested_at=datetime.fromisoformat(ingested_at_raw) if ingested_at_raw else None,
+            connector_run_id=r["connector_run_id"],
+            quality_flag=r["quality_flag"],
         )

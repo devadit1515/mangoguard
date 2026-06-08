@@ -42,3 +42,8 @@ def test_foundation_round_trip():
     assert rows[0].source == ConnectorSource.IMD
     assert rows[0].t_air_c == 24.0
     assert rows[-1].t_air_c == 24.0 + 23 * 0.4
+    # Audit fields stamped by Connector.run
+    assert all(r.ingested_at is not None for r in rows)
+    assert all(r.connector_run_id is not None for r in rows)
+    # All 24 rows share the same run_id (single connector invocation)
+    assert len({r.connector_run_id for r in rows}) == 1
