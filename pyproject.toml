@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mangoguard"
-version = "0.0.1"
+version = "0.1.0"
 description = "AI orchard-management & MRL-aware spray-audit system for Indian Alphonso mango growers"
 readme = "README.md"
 requires-python = ">=3.11"
