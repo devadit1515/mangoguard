@@ -1,11 +1,11 @@
 """Tests for the unified per-block-per-timestamp observation schema."""
-# ruff: noqa: UP017, PLR2004, I001
 
 from datetime import datetime, timezone
 
 import pytest
-from mangoguard.schema import BlockObservation, ConnectorSource
 from pydantic import ValidationError
+
+from mangoguard.schema import BlockObservation, ConnectorSource
 
 
 def test_block_observation_minimal_required_fields():

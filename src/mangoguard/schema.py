@@ -17,7 +17,7 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class ConnectorSource(str, Enum):  # noqa: UP042
+class ConnectorSource(str, Enum):
     """Origin of a `BlockObservation`. One enum value per connector."""
 
     FYLLO = "fyllo"
