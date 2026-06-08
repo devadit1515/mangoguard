@@ -1,0 +1,115 @@
+# MangoGuard CSV fallback schema
+#
+# Any vendor without a dedicated MangoGuard connector can produce a CSV
+# matching this schema and feed the universal CSV fallback connector
+# (ConnectorSource.CSV_FALLBACK).
+#
+# Required columns: block_id, ts_iso, source.
+# Every other column is optional -- omit columns entirely or leave cells
+# blank ('', NA, --) if the vendor does not produce that signal.
+#
+# This file is human-readable contract documentation for the farmer.
+# The connector itself does not parse it.
+
+version: 1
+
+columns:
+  - name: block_id
+    required: true
+    type: string
+    max_length: 32
+    description: |
+      Stable orchard-block identifier. Lowercased, hyphen-separated,
+      <=32 chars. Example: "south-block-alphonso".
+
+  - name: ts_iso
+    required: true
+    type: datetime
+    format: ISO 8601 with timezone offset
+    example: 2025-07-12T10:30:00+05:30
+    description: |
+      Observation timestamp. Must be tz-aware (offset like +05:30 for
+      IST, or trailing Z for UTC). Naive datetimes are rejected.
+
+  - name: source
+    required: true
+    type: enum
+    allowed_values:
+      - csv_fallback
+    description: |
+      Always 'csv_fallback' for rows loaded through this connector.
+      The CHECK constraint on the observations table enforces this.
+
+  # --- weather ---
+  - name: t_air_c
+    required: false
+    type: float
+    range: [-50.0, 70.0]
+    units: degrees Celsius
+  - name: rh_pct
+    required: false
+    type: float
+    range: [0.0, 100.0]
+    units: percent
+  - name: leaf_wetness_hr
+    required: false
+    type: float
+    range: [0.0, 24.0]
+    units: hours
+  - name: precip_mm
+    required: false
+    type: float
+    range: [0.0, null]
+    units: mm
+  - name: wind_speed_ms
+    required: false
+    type: float
+    range: [0.0, null]
+    units: m/s
+  - name: solar_w_m2
+    required: false
+    type: float
+    range: [0.0, null]
+    units: W/m^2
+  - name: soil_moisture_pct
+    required: false
+    type: float
+    range: [0.0, 100.0]
+    units: percent (volumetric)
+
+  # --- remote sensing ---
+  - name: ndvi
+    required: false
+    type: float
+    range: [-1.0, 1.0]
+  - name: ndre
+    required: false
+    type: float
+    range: [-1.0, 1.0]
+  - name: ndmi
+    required: false
+    type: float
+    range: [-1.0, 1.0]
+
+  # --- domain-specific ---
+  - name: plantix_diagnosis_class
+    required: false
+    type: string
+    max_length: 64
+    description: Manually-transcribed disease class label.
+  - name: cropsap_pest_pressure
+    required: false
+    type: float
+    range: [0.0, null]
+    units: percent infestation
+  - name: mandi_modal_price_inr_per_quintal
+    required: false
+    type: float
+    range: [0.0, null]
+    units: INR per quintal
+
+  - name: notes
+    required: false
+    type: string
+    max_length: 512
+    description: Free-form notes. JSON encouraged for structured side-data.

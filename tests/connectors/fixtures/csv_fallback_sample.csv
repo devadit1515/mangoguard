@@ -1,0 +1,7 @@
+block_id,ts_iso,source,t_air_c,rh_pct,leaf_wetness_hr,precip_mm,wind_speed_ms,solar_w_m2,soil_moisture_pct,ndvi,ndre,ndmi,plantix_diagnosis_class,cropsap_pest_pressure,mandi_modal_price_inr_per_quintal,notes
+south-block,2025-07-12T00:00:00+05:30,csv_fallback,27.3,90.5,0.25,0.4,2.1,0.0,32.1,,,,,,,
+south-block,2025-07-12T00:30:00+05:30,csv_fallback,27.0,91.5,0.30,0.8,2.3,0.0,32.3,,,,,,,
+south-block,2025-07-12T01:00:00+05:30,csv_fallback,26.9,92.0,0.33,1.0,2.4,0.0,32.4,,,,,,,
+north-block,2025-07-12T00:00:00+05:30,csv_fallback,27.4,89.0,,0.3,1.9,0.0,30.0,0.71,0.42,0.18,,,,
+north-block,2025-07-12T12:00:00+05:30,csv_fallback,30.2,72.0,0.0,0.0,3.1,520.0,28.5,,,,,,,
+north-block,2025-07-12T18:00:00+05:30,csv_fallback,,,,,,,,,,,anthracnose,34.5,,"{""source"":""manual"",""note"":""sample fields used""}"
