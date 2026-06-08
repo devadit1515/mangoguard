@@ -86,3 +86,58 @@ def test_connector_source_enum_covers_all_planned_sources():
         "CSV_FALLBACK",
     }
     assert {s.name for s in ConnectorSource} == expected
+
+
+def test_block_observation_accepts_valid_boundary_values():
+    """Confirm `ge`/`le` bounds are inclusive — not `gt`/`lt`."""
+    obs_low = BlockObservation(
+        block_id="B1",
+        ts=datetime(2026, 7, 12, tzinfo=timezone.utc),
+        source=ConnectorSource.IMD,
+        rh_pct=0.0,
+        ndvi=-1.0,
+        ndre=-1.0,
+        ndmi=-1.0,
+        leaf_wetness_hr=0.0,
+        soil_moisture_pct=0.0,
+    )
+    assert obs_low.rh_pct == 0.0
+    assert obs_low.ndvi == -1.0
+
+    obs_high = BlockObservation(
+        block_id="B1",
+        ts=datetime(2026, 7, 12, tzinfo=timezone.utc),
+        source=ConnectorSource.IMD,
+        rh_pct=100.0,
+        ndvi=1.0,
+        ndre=1.0,
+        ndmi=1.0,
+        leaf_wetness_hr=24.0,
+        soil_moisture_pct=100.0,
+    )
+    assert obs_high.rh_pct == 100.0
+    assert obs_high.ndvi == 1.0
+    assert obs_high.leaf_wetness_hr == 24.0
+
+
+def test_block_observation_is_frozen():
+    """Pydantic v2 `frozen=True` must reject mutation after construction."""
+    obs = BlockObservation(
+        block_id="B1",
+        ts=datetime(2026, 7, 12, tzinfo=timezone.utc),
+        source=ConnectorSource.IMD,
+        t_air_c=25.0,
+    )
+    with pytest.raises(ValidationError):
+        obs.t_air_c = 99.0  # type: ignore[misc]
+
+
+def test_block_observation_rejects_extra_fields():
+    """`extra="forbid"` must reject unknown fields to catch connector bugs early."""
+    with pytest.raises(ValidationError):
+        BlockObservation(
+            block_id="B1",
+            ts=datetime(2026, 7, 12, tzinfo=timezone.utc),
+            source=ConnectorSource.IMD,
+            unknown_vendor_field="oops",  # type: ignore[call-arg]
+        )
