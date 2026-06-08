@@ -24,6 +24,7 @@ dev = [
     "ruff>=0.4",
     "pre-commit>=3.7",
     "freezegun>=1.5",
+    "responses>=0.25",
 ]
 ml = [
     "torch>=2.2",
