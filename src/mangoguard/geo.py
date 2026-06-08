@@ -104,19 +104,23 @@ def load_blocks(path: str | Path) -> list[Block]:
     return blocks
 
 
-def block_to_ee_geometry(block: Block) -> Any:
+def block_to_ee_geometry(block: Block, ee_module: Any | None = None) -> Any:
     """Adapter: convert a Block to an ``ee.Geometry.Polygon``.
 
-    Lazy-imports ``ee`` (earthengine-api) so this module loads in
+    If ``ee_module`` is provided (tests inject a fake), it is used directly.
+    Otherwise lazy-imports ``ee`` (earthengine-api) so this module loads in
     environments that have not installed the ``geo`` extra. Caller is
     responsible for ``ee.Initialize()`` having been called.
 
     Raises ``RuntimeError`` if ``ee`` is unavailable.
     """
-    try:
-        import ee  # noqa: PLC0415 — lazy import for optional dep
-    except ImportError as e:
-        msg = "block_to_ee_geometry requires earthengine-api: " "pip install -e '.[geo]'"
-        raise RuntimeError(msg) from e
+    if ee_module is not None:
+        ee = ee_module
+    else:
+        try:
+            import ee  # noqa: PLC0415 — lazy import for optional dep
+        except ImportError as e:
+            msg = "block_to_ee_geometry requires earthengine-api: pip install -e '.[geo]'"
+            raise RuntimeError(msg) from e
 
     return ee.Geometry.Polygon(block.polygon_geojson["coordinates"])
