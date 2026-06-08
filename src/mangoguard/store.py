@@ -89,10 +89,7 @@ class FeedStore:
         if not rows:
             return
         placeholders = ", ".join(["?"] * len(_COLUMNS))
-        sql = (
-            f"INSERT OR REPLACE INTO observations ({', '.join(_COLUMNS)}) "
-            f"VALUES ({placeholders})"
-        )
+        sql = f"INSERT OR REPLACE INTO observations ({', '.join(_COLUMNS)}) VALUES ({placeholders})"
         self._conn.executemany(sql, rows)
 
     def query(
@@ -115,7 +112,7 @@ class FeedStore:
 
     def query_by_source(self, source: ConnectorSource) -> list[BlockObservation]:
         cur = self._conn.execute(
-            "SELECT * FROM observations WHERE source = ? " "ORDER BY ts ASC, block_id ASC",
+            "SELECT * FROM observations WHERE source = ? ORDER BY ts ASC, block_id ASC",
             (source.value,),
         )
         return [self._row_to_obs(r) for r in cur.fetchall()]
