@@ -87,6 +87,11 @@ known-first-party = ["mangoguard"]
 "tests/**/*.py" = [
     "PLR2004",   # magic values in comparisons: idiomatic in pytest assertions
 ]
+"notebooks/**/*.ipynb" = [
+    "PLR2004",   # magic values in plotting / threshold-sweep cells are intentional
+    "E501",      # long lines acceptable in notebook cells
+    "B905",      # zip strict=False is fine for plot loops
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
