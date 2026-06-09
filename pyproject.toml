@@ -116,6 +116,14 @@ known-first-party = ["mangoguard"]
     "PLR0913",
     "PLR2004",
     "PLC0415",
+    "RET504",
+    "E501",
+]
+"tests/chatbot/**/*.py" = [
+    "PLC0415",
+    "E501",
+    "B017",
+    "PT011",
 ]
 
 [tool.pytest.ini_options]
