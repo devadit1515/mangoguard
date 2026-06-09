@@ -1,0 +1,75 @@
+# KVK Konkan (Krishi Vigyan Kendra, Dapoli) calendar-based spray baseline
+# (PLACEHOLDER -- distilled from KVK Dapoli + DBSKKV extension pamphlets,
+# refresh from original PDFs before CREST submission).
+#
+# Differs from ICAR-CISH in two ways:
+#   * Includes neem-oil organic interventions tuned to the Konkan organic
+#     export channel (~5% of Alphonso area).
+#   * Adds an extra hopper spray at the flowering-tail because Konkan
+#     hopper populations historically peak ~10 days later than the
+#     all-India CISH calendar.
+
+metadata:
+  source: "KVK Dapoli + DBSKKV extension pamphlets 2024 (PLACEHOLDER)"
+  region: "Konkan (Ratnagiri / Sindhudurg / Raigad)"
+  cultivar: "Alphonso (Hapus)"
+
+schedule:
+  - phenology_stage: "pre_flowering"
+    iso_week_range: [3, 4]
+    pesticide: "neem_oil"
+    formulation: "1500 ppm"
+    dose: "5 ml/L"
+    target: "hopper"
+    note: "Organic prophylactic; suppresses early hopper colonies"
+
+  - phenology_stage: "flowering"
+    iso_week_range: [5, 9]
+    pesticide: "carbendazim"
+    formulation: "50 WP"
+    dose: "1 g/L"
+    target: "anthracnose"
+
+  - phenology_stage: "flowering"
+    iso_week_range: [5, 9]
+    pesticide: "wettable_sulphur"
+    formulation: "80 WG"
+    dose: "2 g/L"
+    target: "powdery_mildew"
+
+  - phenology_stage: "flowering_tail"
+    iso_week_range: [9, 11]
+    pesticide: "imidacloprid"
+    formulation: "17.8 SL"
+    dose: "0.5 ml/L"
+    target: "hopper"
+    note: "Konkan-specific: hopper peak 10 days after CISH calendar"
+
+  - phenology_stage: "fruit_set"
+    iso_week_range: [10, 13]
+    pesticide: "mancozeb"
+    formulation: "75 WP"
+    dose: "2 g/L"
+    target: "anthracnose"
+
+  - phenology_stage: "fruit_development"
+    iso_week_range: [14, 17]
+    pesticide: "azoxystrobin"
+    formulation: "23 SC"
+    dose: "1 ml/L"
+    target: "anthracnose"
+    note: "Strobilurin -- broad-spectrum, also active vs powdery mildew"
+
+  - phenology_stage: "fruit_development"
+    iso_week_range: [14, 17]
+    pesticide: "acetamiprid"
+    formulation: "20 SP"
+    dose: "0.2 g/L"
+    target: "hopper"
+
+  - phenology_stage: "pre_harvest"
+    iso_week_range: [18, 18]
+    pesticide: "copper_oxychloride"
+    formulation: "50 WP"
+    dose: "3 g/L"
+    target: "anthracnose"

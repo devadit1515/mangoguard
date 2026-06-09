@@ -1,0 +1,77 @@
+# ICAR-CISH Mango Production Technology calendar-based spray baseline
+# (PLACEHOLDER -- distilled from the published technical bulletin, refresh
+# against the official ICAR-CISH PDF + 2023 update before CREST submission).
+#
+# This is the "what extension officers recommend today" baseline against
+# which MangoGuard's PPI-driven recommender is benchmarked in Plan 4
+# Task 14 (retrospective backtest) and Task 15 (RASFF counterfactual).
+#
+# Konkan-Alphonso phenology calendar:
+#   ISO week 1-4   -> dormancy
+#   ISO week 5-9   -> flowering
+#   ISO week 10-17 -> fruit-set + fruit-development
+#   ISO week 18-22 -> harvest
+#   ISO week 23-35 -> post-harvest + monsoon
+#   ISO week 36-52 -> vegetative flush + autumn
+
+metadata:
+  source: "ICAR-CISH Mango Production Technology 2023 (PLACEHOLDER)"
+  region: "Konkan / Western India"
+  cultivar: "Alphonso (Hapus)"
+
+schedule:
+  - phenology_stage: "flowering"
+    iso_week_range: [5, 9]
+    pesticide: "carbendazim"
+    formulation: "50 WP"
+    dose: "1 g/L"
+    target: "anthracnose"
+    note: "Pre-bloom prophylactic"
+
+  - phenology_stage: "flowering"
+    iso_week_range: [5, 9]
+    pesticide: "sulphur"
+    formulation: "80 WP"
+    dose: "3 g/L"
+    target: "powdery_mildew"
+    note: "Tandem with anthracnose spray during peak bloom"
+
+  - phenology_stage: "fruit_set"
+    iso_week_range: [10, 13]
+    pesticide: "mancozeb"
+    formulation: "75 WP"
+    dose: "2 g/L"
+    target: "anthracnose"
+    note: "Post-bloom protectant, 14-day interval"
+
+  - phenology_stage: "fruit_set"
+    iso_week_range: [10, 13]
+    pesticide: "imidacloprid"
+    formulation: "17.8 SL"
+    dose: "0.5 ml/L"
+    target: "hopper"
+    note: "Hopper appears with flowering tail"
+
+  - phenology_stage: "fruit_development"
+    iso_week_range: [14, 17]
+    pesticide: "hexaconazole"
+    formulation: "5 EC"
+    dose: "2 ml/L"
+    target: "anthracnose"
+    note: "Mid-development systemic; 30 day PHI tight to harvest"
+
+  - phenology_stage: "fruit_development"
+    iso_week_range: [14, 17]
+    pesticide: "thiamethoxam"
+    formulation: "25 WG"
+    dose: "0.2 g/L"
+    target: "hopper"
+    note: "Second hopper round if pressure persists"
+
+  - phenology_stage: "pre_harvest"
+    iso_week_range: [18, 18]
+    pesticide: "copper_oxychloride"
+    formulation: "50 WP"
+    dose: "3 g/L"
+    target: "anthracnose"
+    note: "Short PHI (7d) protectant; safe close to harvest"
