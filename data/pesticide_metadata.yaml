@@ -1,0 +1,204 @@
+# Pesticide metadata for the MangoGuard recommender ranker (Plan 4 Task 10/11).
+#
+# Each entry: residue half-life (days), per-acre cost (INR), and per-pathogen
+# efficacy in [0,1]. The ranker (Task 11) scores candidates with:
+#     log_score = log(efficacy + 1e-6) - log(half_life + 1) - log(cost + 1)
+#
+# PLACEHOLDER WARNING: half-lives and efficacies are interpolated from
+# agronomy literature (Akem 2006; NHB Bulletin 31; ICAR-CISH 2023; PPDB Hertfordshire).
+# Costs are 2024 Konkan wholesale-channel approximations. Refresh from primary
+# sources (EU PPDB, CIB&RC label dose tables, Maharashtra MSAMB price lists)
+# before CREST report submission.
+#
+# Validation: every active_ingredient here MUST also be in cibrc_mango_registered.csv.
+# Test test_metadata_subset_of_cibrc enforces this.
+
+pesticides:
+  - active_ingredient: hexaconazole
+    residue_half_life_days: 12
+    cost_per_acre_inr: 280
+    efficacy_per_pathogen:
+      anthracnose: 0.85
+      powdery_mildew: 0.60
+      hopper: 0.0
+    source: PPDB + Akem 2006 (PLACEHOLDER)
+
+  - active_ingredient: carbendazim
+    residue_half_life_days: 18
+    cost_per_acre_inr: 220
+    efficacy_per_pathogen:
+      anthracnose: 0.80
+      powdery_mildew: 0.55
+      hopper: 0.0
+    source: PPDB + ICAR-CISH (PLACEHOLDER, restricted in EU)
+
+  - active_ingredient: mancozeb
+    residue_half_life_days: 7
+    cost_per_acre_inr: 180
+    efficacy_per_pathogen:
+      anthracnose: 0.70
+      powdery_mildew: 0.35
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER)
+
+  - active_ingredient: copper_oxychloride
+    residue_half_life_days: 30
+    cost_per_acre_inr: 160
+    efficacy_per_pathogen:
+      anthracnose: 0.50
+      powdery_mildew: 0.10
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER, broad-spectrum protectant)
+
+  - active_ingredient: azoxystrobin
+    residue_half_life_days: 14
+    cost_per_acre_inr: 480
+    efficacy_per_pathogen:
+      anthracnose: 0.90
+      powdery_mildew: 0.75
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER, strobilurin)
+
+  - active_ingredient: difenoconazole
+    residue_half_life_days: 16
+    cost_per_acre_inr: 420
+    efficacy_per_pathogen:
+      anthracnose: 0.82
+      powdery_mildew: 0.70
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER, triazole)
+
+  - active_ingredient: tebuconazole
+    residue_half_life_days: 20
+    cost_per_acre_inr: 360
+    efficacy_per_pathogen:
+      anthracnose: 0.78
+      powdery_mildew: 0.85
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER)
+
+  - active_ingredient: propiconazole
+    residue_half_life_days: 22
+    cost_per_acre_inr: 340
+    efficacy_per_pathogen:
+      anthracnose: 0.75
+      powdery_mildew: 0.82
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER)
+
+  - active_ingredient: penconazole
+    residue_half_life_days: 15
+    cost_per_acre_inr: 300
+    efficacy_per_pathogen:
+      anthracnose: 0.30
+      powdery_mildew: 0.80
+      hopper: 0.0
+    source: PPDB (PLACEHOLDER, mildew-specific triazole)
+
+  - active_ingredient: sulphur
+    residue_half_life_days: 3
+    cost_per_acre_inr: 90
+    efficacy_per_pathogen:
+      anthracnose: 0.10
+      powdery_mildew: 0.70
+      hopper: 0.0
+    source: NHB Bulletin 31 (PLACEHOLDER, contact protectant)
+
+  - active_ingredient: wettable_sulphur
+    residue_half_life_days: 3
+    cost_per_acre_inr: 110
+    efficacy_per_pathogen:
+      anthracnose: 0.10
+      powdery_mildew: 0.75
+      hopper: 0.0
+    source: NHB Bulletin 31 (PLACEHOLDER)
+
+  - active_ingredient: imidacloprid
+    residue_half_life_days: 25
+    cost_per_acre_inr: 240
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.85
+    source: PPDB + CROPSAP advisories (PLACEHOLDER)
+
+  - active_ingredient: thiamethoxam
+    residue_half_life_days: 28
+    cost_per_acre_inr: 320
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.88
+    source: PPDB (PLACEHOLDER, neonicotinoid)
+
+  - active_ingredient: acetamiprid
+    residue_half_life_days: 12
+    cost_per_acre_inr: 280
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.82
+    source: PPDB (PLACEHOLDER)
+
+  - active_ingredient: buprofezin
+    residue_half_life_days: 16
+    cost_per_acre_inr: 360
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.78
+    source: PPDB (PLACEHOLDER, IGR)
+
+  - active_ingredient: lambda_cyhalothrin
+    residue_half_life_days: 10
+    cost_per_acre_inr: 200
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.75
+    source: PPDB (PLACEHOLDER, pyrethroid)
+
+  - active_ingredient: deltamethrin
+    residue_half_life_days: 11
+    cost_per_acre_inr: 210
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.72
+    source: PPDB (PLACEHOLDER, pyrethroid)
+
+  - active_ingredient: spinosad
+    residue_half_life_days: 5
+    cost_per_acre_inr: 540
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.55
+    source: PPDB (PLACEHOLDER, naturalyte)
+
+  - active_ingredient: flubendiamide
+    residue_half_life_days: 14
+    cost_per_acre_inr: 620
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.30
+    source: PPDB (PLACEHOLDER, diamide)
+
+  - active_ingredient: chlorpyrifos
+    residue_half_life_days: 35
+    cost_per_acre_inr: 170
+    efficacy_per_pathogen:
+      anthracnose: 0.0
+      powdery_mildew: 0.0
+      hopper: 0.78
+    source: PPDB (PLACEHOLDER, organophosphate; EU-restricted -> RASFF risk)
+
+  - active_ingredient: neem_oil
+    residue_half_life_days: 2
+    cost_per_acre_inr: 280
+    efficacy_per_pathogen:
+      anthracnose: 0.25
+      powdery_mildew: 0.30
+      hopper: 0.40
+    source: ICAR-CISH organic guidance (PLACEHOLDER)
