@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mangoguard"
-version = "0.5.0"
+version = "1.0.0rc1"
 description = "AI orchard-management & MRL-aware spray-audit system for Indian Alphonso mango growers"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -124,6 +124,18 @@ known-first-party = ["mangoguard"]
     "E501",
     "B017",
     "PT011",
+]
+"src/mangoguard/app/**/*.py" = [
+    "PLC0415",
+    "E501",
+    "BLE001",
+]
+"src/mangoguard/fieldwork/**/*.py" = [
+    "E501",
+]
+"tests/app/**/*.py" = [
+    "PLC0415",
+    "F401",
 ]
 
 [tool.pytest.ini_options]

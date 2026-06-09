@@ -1,0 +1,18 @@
+# Visit 1 -- farm tour + connector audit + photo dataset (PLACEHOLDER).
+# Fill in real values after the Week 1-2 visit with the cooperating farmer.
+
+visit_id: visit_1
+visit_date: 2026-06-15
+interviewer: MangoGuard student
+location: "Konkan (cooperating farm)"
+weather_summary: "PLACEHOLDER -- update after Visit 1."
+notes: |
+  PLACEHOLDER notes. Capture:
+    * orchard size + block layout
+    * cultivar + tree-age distribution
+    * which of the 5 monitoring systems are deployed
+    * farmer's existing spray-decision routine
+    * any disease symptoms observed
+photos_collected: 0
+spray_log_entries: []
+recommendation_feedback: []
