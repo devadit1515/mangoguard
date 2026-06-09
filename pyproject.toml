@@ -92,6 +92,21 @@ known-first-party = ["mangoguard"]
     "E501",      # long lines acceptable in notebook cells
     "B905",      # zip strict=False is fine for plot loops
 ]
+"src/mangoguard/disease_detector/**/*.py" = [
+    "PLC0415",   # lazy imports (torchvision, pytorch_grad_cam, torch) inside functions are intentional
+    "PLR2004",   # tensor.ndim == 3 and similar checks are idiomatic
+    "PLR0913",   # trainer functions take many hyperparameter kwargs
+    "RET504",    # named locals before return aid debugging in ML code
+]
+"src/mangoguard/yield_price/**/*.py" = [
+    "PLR0913",
+    "PLR2004",
+]
+"src/mangoguard/chatbot/**/*.py" = [
+    "PLR0913",
+    "PLR2004",
+    "PLC0415",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
