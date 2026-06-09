@@ -101,6 +101,16 @@ known-first-party = ["mangoguard"]
 "src/mangoguard/yield_price/**/*.py" = [
     "PLR0913",
     "PLR2004",
+    "N803",      # X, y -- standard ML naming
+    "N806",      # X_train / X_test / y_pred -- standard ML naming
+    "N802",      # train_X_year_from_index helper kept for parity with sklearn idiom
+    "PLC0415",   # lazy imports in helpers
+    "RET504",
+    "E501",
+]
+"tests/yield_price/**/*.py" = [
+    "N803",
+    "N806",
 ]
 "src/mangoguard/chatbot/**/*.py" = [
     "PLR0913",
