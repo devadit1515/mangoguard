@@ -1,0 +1,92 @@
+{
+  "_provenance": "Computed by scripts/run_evaluation.py. Retrospective + tier study use simulated Konkan-climate weather with INDEPENDENT noisy outbreak labels (pipeline validation, not field accuracy). RASFF runs on compiled public rejection data. Yield/price on documented-relationship synthetic data. Live-portal curation + field-season validation are future work.",
+  "retrospective": {
+    "mangoguard": {
+      "roc_auc": 0.7478595478595479,
+      "avg_precision": 0.5246625358156817,
+      "precision_at_0_5": 0.5355450236966824,
+      "recall_at_0_5": 0.6848484848484848,
+      "brier": 0.19472703238115344,
+      "n_samples": 480
+    },
+    "seasonal_baseline": {
+      "roc_auc": 0.5736507936507936,
+      "avg_precision": 0.39523141875602236,
+      "precision_at_0_5": 0.0,
+      "recall_at_0_5": 0.0,
+      "brier": 0.22656973756603177,
+      "n_samples": 480
+    },
+    "icar_cish_baseline": {
+      "roc_auc": 0.49769119769119774,
+      "avg_precision": 0.34271284271284275,
+      "precision_at_0_5": 0.34226190476190477,
+      "recall_at_0_5": 0.696969696969697,
+      "brier": 0.5645833333333333,
+      "n_samples": 480
+    },
+    "meta": {
+      "n_merged_rows": 480,
+      "n_outbreaks": 165,
+      "pathogen": "anthracnose",
+      "outbreak_rate": 0.34375
+    }
+  },
+  "connector_tiers": {
+    "free_feeds_only": {
+      "n_systems": 3,
+      "roc_auc": 0.484,
+      "roc_auc_std": 0.012
+    },
+    "plus_one_commercial": {
+      "n_systems": 4,
+      "roc_auc": 0.778,
+      "roc_auc_std": 0.012
+    },
+    "multi_system_fusion": {
+      "n_systems": 5,
+      "roc_auc": 0.729,
+      "roc_auc_std": 0.007
+    }
+  },
+  "rasff_counterfactual": {
+    "n_export_rejections": 29,
+    "prevention_rate_mangoguard": 0.276,
+    "prevention_rate_icar_cish": 1.0,
+    "prevention_rate_kvk_konkan": 1.0,
+    "rel_improvement_vs_icar_pct": -72.4,
+    "rel_improvement_vs_kvk_pct": -72.4,
+    "n_distinct_ai": 12,
+    "distinct_ai": [
+      "acephate",
+      "acetamiprid",
+      "buprofezin",
+      "carbendazim",
+      "chlorpyrifos",
+      "dimethoate",
+      "imidacloprid",
+      "lambda_cyhalothrin",
+      "monocrotophos",
+      "profenofos",
+      "thiamethoxam",
+      "triazophos"
+    ],
+    "n_mrl_excluded_ai_eu": 5,
+    "mrl_excluded_ai_eu": [
+      "acephate",
+      "dimethoate",
+      "monocrotophos",
+      "profenofos",
+      "triazophos"
+    ],
+    "cutoff": 0.2
+  },
+  "yield_price": {
+    "yield_mae_kg_per_acre": 337.9,
+    "yield_baseline_mae_kg_per_acre": 608.2,
+    "yield_improvement_pct": 44.4,
+    "price_mae_inr_per_kg": 3.05,
+    "price_baseline_mae_inr_per_kg": 10.02,
+    "price_improvement_pct": 69.6
+  }
+}
