@@ -2,6 +2,8 @@
 
 > **Auto-loaded context for every Claude session in this directory.** This file is the single source of truth for the project's design decisions, locked choices, open questions, and rationale. It is updated after every meaningful conversation turn. Read this first; do not re-derive decisions already recorded here.
 
+> **🔁 STANDING INSTRUCTION (user directive, 2026-06-22): auto-push every change.** After every meaningful change to this repo, commit it with a clear message and `git push origin main` — without being asked. Commit directly to `main` (the user's established solo workflow). Do not batch or wait for permission to push. Always run the pre-commit hooks (do not bypass). Exception: never commit secrets/keys.
+
 ---
 
 ## SESSION HANDOFF — read this first if you are a fresh Claude session
