@@ -54,7 +54,7 @@ The aim breaks into six numbered objectives, each mapped to a software module an
 
 ### 2.1 Why this matters
 
-Mango is one of India's largest horticultural crops. The Alphonso (locally *Hapus*) grown along the Konkan coast of Maharashtra is its premium cultivar, and it supports a regional economy worth thousands of crores of rupees a year. Two problems sit underneath the spray decision.
+Mango is one of India's largest horticultural crops: India grows on the order of **20 million tonnes a year across roughly 2.3 million hectares**, the largest mango crop in the world, and the bulk of that area is held by smallholders (National Horticulture Board, *Horticultural Statistics at a Glance*; confirm the exact figures against the latest release before final printing). The Alphonso (locally *Hapus*) grown along the Konkan coast of Maharashtra is its premium cultivar, and it supports a regional economy worth thousands of crores of rupees a year. Two problems sit underneath the spray decision.
 
 - **Residue-driven export rejections.** When an Indian mango consignment is stopped at the European Union border for exceeding an MRL, the loss flows back down the chain to the exporter, the aggregator, and finally the grower. The European Union's Rapid Alert System for Food and Feed (RASFF) records these rejections publicly, and pesticide residue is a recurring cause for Indian mango.
 - **Domestic over-spraying.** Roughly 96% of the crop never leaves the country, so most fruit answers only to the **Food Safety and Standards Authority of India (FSSAI)** residue floor, which is policed far more loosely at the point of sale than export rules are at the border. The incentive to spray "just in case" is strong. It raises three costs at once: the grower's input bill, the farm worker's chemical exposure, and the consumer's dietary residue intake.
@@ -97,7 +97,7 @@ The second decision was whether to **install new sensors** on the cooperating fa
 | Approach | Positives | Negatives |
 |---|---|---|
 | **Install a new IoT (Internet of Things) weather/soil station.** | Full control of the data; clean, complete time series. | Real cost and a single point of failure (battery, connectivity) during the monsoon; only works on the one farm that has it; nothing to offer a farm that already runs a different system. |
-| **Interoperability layer over existing systems (chosen).** | Zero new hardware; works immediately on any farm with any system; turns the heterogeneity of real farms into the research contribution itself. | No control over data quality or availability; every vendor integrates differently (REST API, app-login scrape, screenshot OCR), so the connector layer is more varied to build. |
+| **Interoperability layer over existing systems (chosen).** | Zero new hardware; works immediately on any farm with any system; turns the heterogeneity of real farms into the research contribution itself. | No control over data quality or availability; every vendor integrates differently (REST API, app-login scrape, screenshot optical-character-recognition or OCR), so the connector layer is more varied to build. |
 
 **The interoperability layer was chosen.** It removes deployment risk, it makes the tool usable by the FPO scaling route in §2.2, and it turns the central research question into something genuinely new: does decision quality improve as more of a farm's existing systems are connected? (Success condition S1.) The heterogeneity is a feature, not a tax. One REST Application Programming Interface (API), one government API, two app-login scrapes, and one screenshot parser are four different engineering problems, and solving all four is itself evidence of breadth (§6.2).
 
@@ -204,7 +204,7 @@ The sources above are not a list of equals to be summarised one by one. Read tog
 
 ### 5.8 Referencing
 
-Sources are cited inline in *(Author, Year)* form and collected in §12. Primary sources include Akem (2006) for anthracnose; the NHB and ICAR-CISH bulletins for powdery mildew; the CROPSAP surveillance datasets; the EU RASFF portal; FSSAI residue notifications; the CIB&RC registration list; and the Sentinel-2 mission documentation. The reference list comprises 27 entries, the majority of them primary.
+Sources are cited inline in *(Author, Year)* form and collected in §12. Primary sources include Akem (2006) for anthracnose; the NHB and ICAR-CISH bulletins for powdery mildew; the CROPSAP surveillance datasets; the EU RASFF portal; FSSAI residue notifications; the CIB&RC registration list; and the Sentinel-2 mission documentation. The reference list comprises 28 entries, the majority of them primary.
 
 ---
 
@@ -224,7 +224,7 @@ Every connector implements one abstract interface (`src/mangoguard/connectors/ba
 
 | Connector | Mechanism | Why it is included |
 |---|---|---|
-| **Pessl iMETOS / FieldClimate** | Public REST API with HMAC authentication (`connectors/pessl.py`, `_auth.py`) | The only Indian commercial agri-sensor vendor with a documented public API; likely system on export-grade farms |
+| **Pessl iMETOS / FieldClimate** | Public REST API with HMAC (hash-based message authentication code) request signing (`connectors/pessl.py`, `_auth.py`) | The only Indian commercial agri-sensor vendor with a documented public API; likely system on export-grade farms |
 | **IMD Mausam + Meghdoot** | Free government REST API (`connectors/imd.py`) | Ships for every Konkan user regardless of other equipment |
 | **Fyllo / Fasal** | App-login data export / screen-scrape (`connectors/fyllo.py`, `fasal.py`) | The two fastest-growing commercial agri-IoT systems in India; no public API, so the adapter parses the farmer's own exported data |
 | **Plantix** | Farmer-shared screenshots + OCR parse | India's most-installed plant-disease app; the diagnosis history is extractable per user |
@@ -263,7 +263,7 @@ The conservative design matters most when nothing passes. If any step empties th
 
 ### 6.5 Module 1 — photo disease detector (Objective 4)
 
-`src/mangoguard/disease_detector/` classifies a leaf or fruit photo. The backbone is **MobileNetV3-Small**, chosen over a heavier network like DenseNet201 for one reason: it is small enough to run on a phone. That trades a little accuracy for on-device deployability, in the same spirit as the §3.2 decision. A custom head (Linear 576→256 → ReLU → Dropout 0.5 → Linear 256→*n* classes) is trained by **two-phase transfer learning**. Phase 1 freezes the pretrained backbone and trains only the head (learning rate 1e-3, 5 epochs). Phase 2 unfreezes the backbone and fine-tunes at a much lower rate (1e-5, up to 15 epochs with early stopping). The base dataset is the public MangoLeafBD, calibrated to Indian Alphonso on the original photos collected during the field visit. **Grad-CAM++** produces a heatmap of the pixels the model actually used, so the grower sees *why* a prediction was made, and any prediction below a confidence floor is flagged as low-confidence rather than presented as fact (`disease_detector/infer.py`).
+`src/mangoguard/disease_detector/` classifies a leaf or fruit photo. The backbone is **MobileNetV3-Small**, chosen over a heavier network like DenseNet201 for one reason: it is small enough to run on a phone. That trades a little accuracy for on-device deployability, in the same spirit as the §3.2 decision. A custom head (Linear 576→256 → ReLU → Dropout 0.5 → Linear 256→*n* classes) is trained by **two-phase transfer learning**. Phase 1 freezes the pretrained backbone and trains only the head (learning rate 1e-3, 5 epochs). Phase 2 unfreezes the backbone and fine-tunes at a much lower rate (1e-5, up to 15 epochs with early stopping). The base dataset is the public MangoLeafBD; the pipeline is built to calibrate to Indian Alphonso on original Alphonso photos from a field visit, but that calibration training was not run within the project window and is reported as future work (§8.5). **Grad-CAM++** produces a heatmap of the pixels the model actually used, so the grower sees *why* a prediction was made, and any prediction below a confidence floor is flagged as low-confidence rather than presented as fact (`disease_detector/infer.py`).
 
 ### 6.6 Module 2 — orchard-health dashboard (Objective 4)
 
@@ -275,7 +275,7 @@ The conservative design matters most when nothing passes. If any step empties th
 
 ### 6.7 Module 4 — yield and *mandi*-price forecasting (Objective 4)
 
-`src/mangoguard/yield_price/` trains two gradient-boosted tree models (**XGBoost**). The yield model regresses block-level yield on an 11-feature vector: acreage, tree count, mean tree age, the April–June NDVI integral, cumulative growing-degree-days above 10 °C, total rainfall, mean humidity, soil texture class, soil pH, previous-season yield, and season year. The price model forecasts the harvest-week AGMARKNET *mandi* price from historical prices with one-to-four-week lags. **SHAP** (SHapley Additive exPlanations) values come with every prediction (`shap_explain.py`), so a forecast arrives with the features that drove it instead of as a bare number. It is the same explain-don't-assert principle as the Grad-CAM heatmaps. Both models are benchmarked against a seasonal-mean baseline (success condition S3).
+`src/mangoguard/yield_price/` trains two gradient-boosted tree models (**XGBoost**). The yield model regresses block-level yield on an 11-feature vector: acreage, tree count, mean tree age, the April–June NDVI integral, cumulative growing-degree-days above 10 °C, total rainfall, mean humidity, soil texture class, soil pH, previous-season yield, and season year. The price model forecasts the harvest-week AGMARKNET *mandi* price from historical prices with one-to-four-week lags. **SHAP** (SHapley Additive exPlanations) values come with every prediction (`shap_explain.py`), so a forecast arrives with the features that drove it instead of as a bare number. It is the same explain-don't-assert principle as the Grad-CAM heatmaps. Both models are evaluated on a held-out test split against a seasonal-mean baseline (success condition S3); §8.6 reports the test-split error and states the exact protocol.
 
 ### 6.8 Module 5 — the AskHapus chatbot (Objective 4)
 
@@ -334,7 +334,7 @@ This project was developed with substantial use of an AI assistant (Claude, Anth
 
 ### 8.1 Disease-pressure discrimination (retrospective backtest)
 
-Replaying the PPI across 480 block-weeks (4 blocks × 6 simulated seasons × 20 ISO weeks; 34% outbreak rate) and scoring against the independently-generated outbreak labels (`evaluation/retrospective.py`):
+Replaying the PPI across 480 block-weeks (4 blocks × 6 simulated seasons × 20 ISO weeks; 34% outbreak rate) and scoring against the independently-generated outbreak labels (`evaluation/retrospective.py`; the full generator specification is in Appendix G):
 
 | Scorer | ROC-AUC ↑ | Average precision ↑ | Brier score ↓ |
 |---|---|---|---|
@@ -391,7 +391,7 @@ Real XGBoost models (`yield_price/`) trained and evaluated against a seasonal-me
 | Block yield | 338 kg/acre | 608 kg/acre | **44.4%** |
 | Harvest-week *mandi* price | ₹3.05/kg | ₹10.02/kg | **69.6%** |
 
-Both comfortably clear the ≥15% target (S3) on this synthetic benchmark. The margin is large partly because a seasonal-mean baseline is weak against a lagged price series, so the honest claim is narrow: the gradient-boosted model *uses the features it is given*. That validates the pipeline ahead of training on real AGMARKNET and block data, which is the next step.
+The yield benchmark exercises a six-feature synthetic subset (NDVI integral, previous-season yield, rainfall, tree age, growing-degree-days, season year) of the eleven-feature production vector in §6.7, on 600 samples; the price benchmark uses a four-week-lagged 520-week series. Each is split 80/20 — the yield split positional, the price split *temporally ordered* so no future week can leak into a past prediction — and the MAE above is the held-out test error, not the training error. Both comfortably clear the ≥15% target (S3) on this synthetic benchmark. The margin is large partly because a seasonal-mean baseline is weak against a lagged price series, so the honest claim is narrow: the gradient-boosted model *uses the features it is given*. That validates the pipeline ahead of training on real AGMARKNET and block data, which is the next step.
 
 ### 8.7 Stakeholder validation — *future work, not yet conducted*
 
@@ -455,7 +455,7 @@ Returning to the aim (§1.1) and its success conditions:
 
 ## 12. References
 
-> *(Author, Year) Harvard style. The 27 entries below are the primary and technical sources the project builds on; the majority are primary (peer-reviewed papers, regulatory instruments, and mission/registration documentation). Online portals and government lists carry no author and are dated (n.d.); confirm each access date against the original before final printing.*
+> *(Author, Year) Harvard style. The 28 entries below are the primary and technical sources the project builds on; the majority are primary (peer-reviewed papers, regulatory instruments, and mission/registration documentation). Online portals and government lists carry no author and are dated (n.d.); confirm each access date against the original before final printing.*
 
 1. Akem, C. N. (2006). Mango anthracnose disease: present status and future research priorities. *Plant Pathology Journal*, 5(3), 266–273.
 2. National Horticulture Board (NHB) (n.d.). *Technical Bulletin 31: Mango — powdery mildew management.* Government of India.
@@ -484,6 +484,7 @@ Returning to the aim (§1.1) and its success conditions:
 25. Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., & Chen, L.-C. (2018). MobileNetV2: inverted residuals and linear bottlenecks. *CVPR.*
 26. Selvaraju, R. R., Cogswell, M., Das, A., Vedantam, R., Parikh, D., & Batra, D. (2017). Grad-CAM: visual explanations from deep networks via gradient-based localization. *ICCV.*
 27. Gelman, A., Carlin, J. B., Stern, H. S., & Rubin, D. B. (2013). *Bayesian Data Analysis* (3rd ed.), Ch. 2 (conjugate priors; Beta–binomial). Chapman & Hall/CRC.
+28. National Horticulture Board (NHB), Government of India (n.d.). *Horticultural Statistics at a Glance* — area and production of mango.
 
 ---
 
@@ -533,6 +534,24 @@ Returning to the aim (§1.1) and its success conditions:
 - **Key modules:** `src/mangoguard/schema.py` (data contract); `src/mangoguard/risk/` (PPI engine); `src/mangoguard/recommend/recommend.py` (focal recommender); `src/mangoguard/evaluation/` (retrospective + counterfactual harness).
 - **Open data produced:** a normalised CIB&RC / MRL / RASFF schema (`data/`) reusable by later projects.
 - **Reproduce the headline results:** notebooks `02_anthracnose_htr_calibration.ipynb` and `05_recommender_evaluation.ipynb`.
+
+**Tools, datasets, and their licences** (minimum versions; the project ran on Python 3.12). Open-source licences and dataset access terms should be confirmed against each source before final printing:
+
+| Resource | Version / identifier | Licence / access |
+|---|---|---|
+| Python | 3.11+ (run on 3.12) | Python Software Foundation Licence |
+| PyTorch / torchvision | ≥2.2 / ≥0.17 | BSD-3-Clause |
+| scikit-learn | ≥1.4 | BSD-3-Clause |
+| XGBoost | ≥2.0 | Apache-2.0 |
+| pandas / NumPy | ≥2.2 / ≥1.26 | BSD-3-Clause |
+| SHAP | ≥0.45 | MIT |
+| Streamlit | ≥1.34 | Apache-2.0 |
+| ChromaDB | ≥0.5 | Apache-2.0 |
+| pydantic | ≥2.6 | MIT |
+| MangoLeafBD dataset | Ahmed et al. (2023), Mendeley Data | CC BY 4.0 *(confirm)* |
+| Sentinel-2 imagery | ESA Copernicus, via Google Earth Engine | Free / open (Copernicus) |
+| AGMARKNET prices | data.gov.in | Govt Open Data Licence – India *(confirm)* |
+| CROPSAP surveillance | Govt of Maharashtra | Public surveillance data |
 
 ---
 
@@ -592,5 +611,31 @@ Every quantitative result in §8 is reproducible by running `python scripts/run_
 | 8.7 | Stakeholder validation | FPO officers, APEDA exporters | **Not yet conducted — future work** |
 
 **To extend toward full field validation:** replace the compiled RASFF CSV and MRL/CIB&RC tables with live-portal pulls; run the 2026-season field pilot using the ready `data/fieldwork/` logbook; train the disease detector on collected Alphonso photos. None of these change the code — only the data feeding the same evaluators.
+
+---
+
+## Appendix G — Simulation specification (§8.1 and §8.3)
+
+The retrospective backtest (§8.1) and connector-tier study (§8.3) run on a simulated multi-season Konkan weather record with *independently generated* outbreak labels. The full generator is in `scripts/run_evaluation.py`; its specification is given here so the results are reproducible from this report alone. The random seed is fixed (`SEED = 20260622`), the ground-truth seasons are generated **once**, and only sensor noise varies between connector tiers — which is what makes the tier comparison valid.
+
+**Weather generator** (`_konkan_weather`; one block-week, ISO weeks 2–21, season fraction $f=(\text{week}-2)/20$):
+
+- Mean temperature $T_{\text{mean}} = 24 + 9f + \mathcal{N}(0,1)$ °C (≈24 °C early flowering rising to ≈33 °C pre-harvest).
+- Diurnal range $D\sim U(7,12)$; $T_{\max}=T_{\text{mean}}+D/2$, $T_{\min}=T_{\text{mean}}-D/2$.
+- Humid spell $\sim \text{Bernoulli}(0.25+0.35f)$ (more frequent toward the pre-monsoon).
+- Relative humidity $\sim U(82,95)$ on a humid spell, else $U(55,72)$ %.
+- Leaf wetness $\sim U(6,11)$ h humid, else $U(0,3)$ h; wind $\sim U(0.6,3.5)$ m/s; solar $\sim U(45,90)$ humid, else $U(90,160)$ W/m².
+
+**Outbreak-label generator** (`_outbreak_prob`). Deliberately *not* the PPI formula — different coefficients and functional form, so the backtest cannot be circular:
+
+$$z = -3.1 + 3.8\frac{\mathrm{RH}}{100} + 0.22\,\mathrm{LW} - 0.05\,(T_{\max}-T_{\min}) - 0.012\,\text{solar}, \qquad \text{outbreak}\sim\text{Bernoulli}(\sigma(z))$$
+
+**Panel.** 6 seasons × 4 blocks × 20 ISO weeks = **480 block-weeks**; realised outbreak rate ≈ 34% (165/480).
+
+**Sensor-noise model** (`build_obs_df`, applied independently of the truth; noise seed `SEED+1`, or `SEED+100+s` for the eight tier seeds): air temperature $+\,\mathcal{N}(0,\sigma)$; RH $+\,\mathcal{N}(0,3\sigma)$ clipped to $[0,100]$; leaf wetness $+\,\mathcal{N}(0,\sigma)$ floored at 0. The connector tiers (§8.3) set $\sigma$ by sensor quality (noisy free feed → clean commercial micro-station) and toggle whether a leaf-wetness sensor is present at all (`include_lw`); each tier's AUC is averaged over 8 noise seeds.
+
+**Yield/price (§8.6)** use a separate synthetic generator (`run_yield_price`, same seed): 600 yield samples from a documented linear-plus-Gaussian-noise relationship over a six-feature subset, and a 520-week sinusoidal price series with four weekly lags, each split 80/20 (yield positional, price temporally ordered), with the held-out test-split MAE reported.
+
+The RASFF counterfactual (§8.2) does **not** use simulation; it runs the recommender's real export filters against the compiled rejection list in `data/rasff_mango_rejections.csv`.
 
 *End of report.*
