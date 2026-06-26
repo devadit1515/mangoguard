@@ -1,4 +1,7 @@
-# CLAUDE.md — MangoGuard CREST Project
+> # ⚠️ SUPERSEDED — READ `README.md` FIRST
+> The authoritative mission for this workspace is now **`README.md`** (the flagship CREST Gold *sample*-build brief). Everything below this banner is **historical context for the previous "MangoGuard" attempt only**. Its "LOCKED / do not re-brainstorm" language is **explicitly UNLOCKED**: per `README.md` you may keep, evolve, or completely replace any decision recorded here, including the project concept itself. The one genuinely reusable part is §9 / §9.5 / §9.6 (the verbatim CREST Gold criteria, the writing patterns, the locked report structure) — mine those. The auto-push, no-cost-mention, and communication-style rules still stand. The old design spec + 6 implementation plans are archived in `useless stuff/superpowers/`.
+
+# CLAUDE.md — MangoGuard CREST Project (HISTORICAL — superseded by README.md)
 
 > **Auto-loaded context for every Claude session in this directory.** This file is the single source of truth for the project's design decisions, locked choices, open questions, and rationale. It is updated after every meaningful conversation turn. Read this first; do not re-derive decisions already recorded here.
 
