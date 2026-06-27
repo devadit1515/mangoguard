@@ -205,7 +205,7 @@ def fig_auc_bars():
     ax.text(
         1.5,
         (vals[1] + vals[2]) / 2 + 0.02,
-        f"+{vals[2]-vals[1]:.02f} AUC\n(measured\nleaf wetness)",
+        f"+{vals[2] - vals[1]:.02f} AUC\n(measured\nleaf wetness)",
         ha="center",
         color=C_ACCENT,
         fontsize=8,
@@ -273,7 +273,7 @@ def fig_leafwet_hist():
     )
     ax.set_xlabel("Leaf-wetness sensor ADC reading (12-bit)")
     ax.set_ylabel("count")
-    ax.set_title(f"DIY leaf-wetness sensor: wet vs dry (acc {lw['accuracy']*100:.1f}%)")
+    ax.set_title(f"DIY leaf-wetness sensor: wet vs dry (acc {lw['accuracy'] * 100:.1f}%)")
     ax.legend(fontsize=8)
     save(fig, "fig07_leafwet_hist.png")
 
@@ -351,7 +351,7 @@ def fig_spray():
         ax.text(
             b.get_x() + b.get_width() / 2,
             b.get_height() + 0.2,
-            f"cover\n{cov[i]*100:.0f}%",
+            f"cover\n{cov[i] * 100:.0f}%",
             ha="center",
             fontsize=7.5,
             color=C_ACCENT,
