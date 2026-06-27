@@ -193,8 +193,12 @@ OLED leaf-wetness hours rise and the risk band moves toward WATCH/HIGH.
 | Random reboots | brownout under WiFi | check battery/solar; add a 470 µF cap across 3V3/GND |
 
 The corrosion drift is real and documented: in bench testing, wet/dry accuracy
-fell from ~99% fresh to ~68% after eight weeks of continuous DC excitation, but a
-simple monthly recalibration held it above ~95% (`artifacts/figs/fig09_sensor_drift.png`).
+fell from ~93% fresh to ~63% after eight weeks of DC excitation. Fortnightly
+recalibration slows the decline (to ~73% at week 8) but does not undo it, because
+corrosion eventually pushes the wet reading up toward the dry one until no
+threshold can separate them. So recalibrate every two weeks and **replace the
+grid after about two months**, or move to a capacitive sensor in v2
+(`artifacts/figs/fig09_sensor_drift.png`).
 
 ---
 
