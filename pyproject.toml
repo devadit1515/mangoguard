@@ -3,145 +3,50 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mangoguard"
-version = "1.0.0rc1"
-description = "AI orchard-management & MRL-aware spray-audit system for Indian Alphonso mango growers"
+name = "aamrakshak"
+version = "0.1.0"
+description = "Low-cost leaf-wetness early-warning node for mango anthracnose"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "MangoGuard CREST project" }]
+authors = [{ name = "AamRakshak CREST sample project" }]
 dependencies = [
-    "pydantic>=2.6",
-    "pyyaml>=6.0",
-    "python-dateutil>=2.9",
-    "requests>=2.31",
-    "beautifulsoup4>=4.12",
-    "tzdata>=2024.1; sys_platform == 'win32'",
+    "numpy>=1.26",
+    "pandas>=2.2",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-cov>=4.1",
-    "ruff>=0.4",
-    "pre-commit>=3.7",
-    "freezegun>=1.5",
-    "responses>=0.25",
-]
-ml = [
-    "torch>=2.2",
-    "torchvision>=0.17",
-    "scikit-learn>=1.4",
-    "xgboost>=2.0",
-    "pandas>=2.2",
-    "numpy>=1.26",
-    "shap>=0.45",
-]
-geo = [
-    "earthengine-api>=0.1.400",
-    "geemap>=0.32",
-    "rasterio>=1.3",
-]
-dashboard = [
-    "streamlit>=1.34",
-    "altair>=5.3",
-    "pillow>=10.3",
-]
-scrape = [
-    "playwright>=1.43",
-    "selenium>=4.20",
-    "pdfplumber>=0.11",
-    "pymupdf>=1.24",
-    "pytesseract>=0.3",
-]
-llm = [
-    "google-generativeai>=0.5",
-    "langchain>=0.2",
-    "langchain-community>=0.2",
-    "chromadb>=0.5",
-]
+ml = ["scikit-learn>=1.4"]
+viz = ["matplotlib>=3.8"]
+dashboard = ["streamlit>=1.34", "altair>=5.3"]
+dev = ["pytest>=8.0", "pytest-cov>=4.1", "ruff>=0.4", "scikit-learn>=1.4", "matplotlib>=3.8"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mangoguard"]
+packages = ["src/aamrakshak"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = [
-    "CREST_Crop_Disease_Detection.ipynb",  # obsolete pre-pivot notebook; kept as historical baseline
-    "notebooks/legacy/",                    # future home for any other superseded notebooks
-]
+extend-exclude = ["useless stuff", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "SIM", "RET", "PL"]
 ignore = [
-    "PLR0913",   # too-many-arguments: schema constructors need many
-    "UP017",     # datetime.UTC alias: verbose form is grep-friendly + explicit
-    "UP042",     # StrEnum: project uses (str, Enum) for explicit multi-inheritance
+    "PLR0913",  # many-argument scientific functions are clearer flat
+    "PLR2004",  # magic numbers are intentional in physical models
+    "PLR0912",  # branchy tier/feature dispatch reads fine
+    "PLR0915",
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["mangoguard"]
+known-first-party = ["aamrakshak"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
-    "PLR2004",   # magic values in comparisons: idiomatic in pytest assertions
-]
-"notebooks/**/*.ipynb" = [
-    "PLR2004",   # magic values in plotting / threshold-sweep cells are intentional
-    "E501",      # long lines acceptable in notebook cells
-    "B905",      # zip strict=False is fine for plot loops
-]
-"src/mangoguard/disease_detector/**/*.py" = [
-    "PLC0415",   # lazy imports (torchvision, pytorch_grad_cam, torch) inside functions are intentional
-    "PLR2004",   # tensor.ndim == 3 and similar checks are idiomatic
-    "PLR0913",   # trainer functions take many hyperparameter kwargs
-    "RET504",    # named locals before return aid debugging in ML code
-]
-"src/mangoguard/yield_price/**/*.py" = [
-    "PLR0913",
-    "PLR2004",
-    "N803",      # X, y -- standard ML naming
-    "N806",      # X_train / X_test / y_pred -- standard ML naming
-    "N802",      # train_X_year_from_index helper kept for parity with sklearn idiom
-    "PLC0415",   # lazy imports in helpers
-    "RET504",
-    "E501",
-]
-"tests/yield_price/**/*.py" = [
-    "N803",
-    "N806",
-]
-"src/mangoguard/chatbot/**/*.py" = [
-    "PLR0913",
-    "PLR2004",
-    "PLC0415",
-    "RET504",
-    "E501",
-]
-"tests/chatbot/**/*.py" = [
-    "PLC0415",
-    "E501",
-    "B017",
-    "PT011",
-]
-"src/mangoguard/app/**/*.py" = [
-    "PLC0415",
-    "E501",
-    "BLE001",
-]
-"src/mangoguard/fieldwork/**/*.py" = [
-    "E501",
-]
-"tests/app/**/*.py" = [
-    "PLC0415",
-    "F401",
-]
+"tests/**/*.py" = ["PLR2004", "E402", "PLC0415", "E501", "N802"]
+"scripts/**/*.py" = ["E402"]
+"app/**/*.py" = ["E402", "PLC0415"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra -q --strict-markers"
-filterwarnings = ["ignore::DeprecationWarning"]
-markers = [
-    "integration: live-network tests requiring API keys; skipped by default in CI",
-]
+pythonpath = ["src"]
