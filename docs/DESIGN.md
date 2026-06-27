@@ -4,7 +4,7 @@
 >
 > **Scope note (variety- and region-agnostic by design).** The target pathogen, anthracnose (*Colletotrichum gloeosporioides*), is the dominant pre/post-harvest disease across essentially all Indian mango varieties and humid regions — Alphonso (Konkan), Kesar (Gujarat), Dasheri/Langra (UP), Banganapalli/Totapuri (south), Himsagar (Bengal). The risk model keys on **microclimate, not cultivar** (leaf wetness + humid-thermal ratio describe the *fungus's* needs), and the hardware measures microclimate, so both generalize by construction. Cultivar is handled as a documented per-variety susceptibility multiplier, not a hard assumption. Konkan Alphonso is the **primary validation testbed** (worst-case humidity); generalization is demonstrated on a second, contrasting regional climate (§7).
 >
-> This is the locked design for the flagship CREST Gold *sample* build (see `README.md`). It supersedes the archived "MangoGuard" interoperability project (`useless stuff/`). Internal working doc — the anti-AI-writing rules in `AI Writing.md` apply to the *report*, not to this file.
+> This is the locked design for the flagship CREST Gold *sample* build (see `README.md`). It supersedes the previous "MangoGuard" interoperability project, which was removed during cleanup and is recoverable from git history. Internal working doc; the anti-AI-writing rules in `AI Writing.md` apply to the *report*, not to this file.
 
 ---
 

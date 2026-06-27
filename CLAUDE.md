@@ -1,8 +1,9 @@
 # CLAUDE.md — AamRakshak (flagship CREST Gold *sample* build)
 
 > **Authoritative brief:** `README.md` (the mission). **Locked design:** `docs/DESIGN.md`.
-> This file is the running project memory. The old "MangoGuard" CLAUDE.md is archived at
-> `useless stuff/old_mangoguard_build/` along with all its code, report, and data.
+> This file is the running project memory. The old "MangoGuard" build (code, report, data)
+> was removed from the working tree during cleanup; it is recoverable from git history
+> (commit before `e046ef6`) if ever needed.
 
 ## Standing instructions (carry across sessions)
 - **Auto-push every meaningful change** to `main` with a clear message; run pre-commit hooks; never commit secrets. Solo workflow, commit direct to `main`.

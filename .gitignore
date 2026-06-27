@@ -35,10 +35,14 @@ secrets/
 
 .streamlit/secrets.toml
 
-artifacts/
+# Report figures + metrics under artifacts/ ARE deliverables and are tracked.
+# Only heavy model exports are ignored:
 *.pth
 *.tflite
 *.onnx
+
+# Dashboard upload scratch
+data/_uploaded_tmp.csv
 
 .ipynb_checkpoints/
 

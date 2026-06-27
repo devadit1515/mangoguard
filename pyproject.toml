@@ -27,7 +27,7 @@ packages = ["src/aamrakshak"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["useless stuff", ".venv"]
+extend-exclude = [".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "SIM", "RET", "PL"]
