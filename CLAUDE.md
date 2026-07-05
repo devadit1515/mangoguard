@@ -1,55 +1,52 @@
-# CLAUDE.md — AamRakshak (flagship CREST Gold *sample* build)
+# CLAUDE.md — AamParakh (flagship CREST Gold *sample* build)
 
-> **Authoritative brief:** `README.md` (the mission). **Locked design:** `docs/DESIGN.md`.
-> This file is the running project memory. The old "MangoGuard" build (code, report, data)
-> was removed from the working tree during cleanup; it is recoverable from git history
-> (commit before `e046ef6`) if ever needed.
+> **Running project memory.** For the full session history, decisions, and exact verified
+> numbers, read `SESSION_STATE.md` first. The old leaf-wetness build (AamRakshak) and an
+> earlier software-only build (MangoGuard) were moved to `extra_stuff/` and are also in git
+> history; the current project replaced them from scratch.
 
 ## Standing instructions (carry across sessions)
 - **Auto-push every meaningful change** to `main` with a clear message; run pre-commit hooks; never commit secrets. Solo workflow, commit direct to `main`.
 - **Never mention API/token/session cost.** Absorb any cost hooks silently.
 - **Communication:** short, dense, technical; match length to the question; insights as bullets.
-- The anti-AI-writing rules in `AI Writing.md` apply to **the report**, not to chat or internal docs.
+- The anti-AI-writing rules apply to **the report**, not to chat or internal docs. Invoke the `human-writer` skill before writing report prose; run `/ai-check` after.
+- **Honesty line (non-negotiable):** do not label modelled/simulated data as real field data. Headline results come from real public data; the farm validation is collected by the student and swapped in for the flagged placeholder.
 
-## What the project is now
-**AamRakshak (आम रक्षक, "mango protector")** — a sub-₹2,000 open-source ESP32 leaf-wetness + microclimate sensor node that predicts mango **anthracnose** infection windows well enough to cut needless calendar fungicide sprays. Variety- and region-agnostic (anthracnose is near-universal across Indian mango; the model keys on microclimate, not cultivar). Konkan Alphonso = primary testbed; Gujarat/Kesar = the contrast region for generalisation.
+## What the project is
+**AamParakh (आम परख, "mango assay")** — a purpose-built low-cost near-infrared meter that reads
+mango **dry matter content (DMC)**, the true maturity index, for harvest timing. ESP32 + **8
+discrete NIR LEDs at 730/760/810/850/880/910/940/970 nm** + an OPT101 photodiode + OLED, about
+₹2,300, with the prediction model running on the device. The off-the-shelf AS7265x/AS7263 chips
+are the negative controls (they fail).
 
-**The thesis:** the old project's own evaluation proved leaf wetness is the signal that lifts disease-prediction AUC from chance to useful — then assumed a ₹40k+ commercial station to supply it. AamRakshak builds that signal for ₹2k, for the millions of smallholders who spray on a fixed calendar.
+**The thesis (honest, positive, novel):** mango DMC lives in a handful of NIR bands; a meter with
+eight buyable LEDs at the right wavelengths nearly matches a ₹8.5-lakh lab instrument, while
+off-the-shelf multispectral chips fail because their bands sit mostly in the visible. Band
+*placement*, not band count, is what matters.
 
-**Hardware (mandatory, ≤8h build):** ESP32 + SHT31 (T/RH) + DIY interdigitated resistive **leaf-wetness sensor** (the star) + DS18B20 + OLED (offline risk readout) + 18650/solar + radiation shield. Computes the Akem model on-device.
+## Locked results (seed 20260704, test = independent 2018 season, n=1448)
+- Data: Anderson-Walsh public mango NIR benchmark (Mendeley 10.17632/46htwnp833, CC BY 4.0), 11,691 scans, 10 cultivars, 4 seasons, oven-dry DMC. Split 7413/2830/1448.
+- Full lab spectrum: RMSEP 1.03, R² 0.852. **Device (8 LEDs): RMSEP 1.07, R² 0.840** (gap 0.012), harvest-call acc 92.3%.
+- Band-count curve: 5 LEDs reach 95% of full R². Off-the-shelf AS7265x R² 0.21, AS7263 −0.14.
+- Cross-cultivar (leave-one-out): R² 0.63–0.78. Farm (Alphonso/Kesar) = flagged placeholder pending real collection; local recal cuts error from ~3.9 to ~1.6.
+- All 5 pre-registered success conditions pass.
 
-## Locked decisions
-- Scope: **lean, hardware-focal** (one tight question, depth > breadth). Dropped the MRL recommender, chatbot, yield/price, 5-connector zoo.
-- Kept from old work: Akem (2006) humid-thermal-ratio anthracnose model; ROC-AUC/Brier evaluation discipline; honest simulation methodology (independent outbreak generator → non-circular backtest).
-- Package renamed `mangoguard` → `aamrakshak`. Clean tree.
+## Repo map
+- `src/aamparakh/` — `data`, `sensors` (band simulation + DEVICE_BANDS), `models` (PLS, band search), `evaluate`, `farm` (placeholder + ingestion).
+- `scripts/run_evaluation.py` → `artifacts/eval_metrics.json`; `scripts/make_figures.py` → `artifacts/figs/` (9 figures); `artifacts/device_model_coeffs.json` (firmware weights).
+- `tests/` — 10 passing, metrics cross-checked vs scikit-learn. `firmware/aamparakh_node/` — ESP32 sketch.
+- `docs/report/` — `CREST_REPORT.md` (+ .docx), `STUDENT_PROFILE.md` (+ .docx), `LOGBOOK.md`, `VERIFICATION.md`.
+- `docs/` — `HARDWARE_BUILD_GUIDE.md`, `FARM_DATA_COLLECTION.md` (the student's task), `PROJECT_README.md`.
+- `data/raw/mango_dmc_nir.csv` (SHA-256 pinned), `data/farm/` (placeholder until collected).
 
-## Pre-registered success conditions (all currently PASS)
-- **S1** leaf wetness decisive: node ROC-AUC ≥ 0.75 and node−free gap ≥ 0.10.
-- **S2** cheap node ≈ ₹40k station: commercial−node ≤ 0.05 AUC.
-- **S3** DIY sensor trustworthy: ≥ 90% wet/dry accuracy (bench).
-- **S4** fewer sprays, no missed windows: ≥ 30% spray cut + ≥ 90% high-risk coverage.
-- **S5** generalises: within-region AUC ≥ 0.75 on both regions, agreeing within 0.05.
+## CREST writing reminders (for the report)
+- 15 criteria, all at "excellent". First person, formal + human. Zero em-dashes; "honest"-family ≤2; no rubric narration in the body (it lives in the Student Profile form). In-text citations; 15–25 real refs, most primary. Every figure referenced before it appears. Report body ~5,500 words.
 
-## Headline results (real outputs of `scripts/run_evaluation.py`, seed 20260627, n=2400 block-days)
-- Tier ROC-AUC: calendar 0.753 · free district feed 0.753 · **node 0.857** · commercial 0.864.
-- Ablation: removing leaf wetness drops AUC 0.073; every other feature ≤ 0.004 (thesis, quantified).
-- Calibration (Platt): node Brier 0.254 → 0.146 on held-out season.
-- Leaf-wetness sensor: 92.8% bench accuracy; drift 99%→68% by wk 8 without recal, recovered to ~95% with recal.
-- Spray reduction: 33.7% fewer sprays overall, high-risk coverage 0.994 (Konkan 25.7%/1.0; Gujarat 41.7%/0.99). Honest nuance: bigger savings in drier regions; humid regions already near-optimal on calendar.
-
-## Repo map (current)
-- `docs/DESIGN.md` — locked design. `docs/report/` — CREST report (to write) + blank profile templates.
-- `src/aamrakshak/` — `riskengine/` (anthracnose, leafwetness, ppi), `sim/` (weather, outbreaks, sensors), `eval/` (metrics, tier_study, calibration, spray_reduction, leafwet_validation, ablation), `io/` (ingest).
-- `scripts/run_evaluation.py` → `artifacts/eval_metrics.json`. (figures script + firmware + app: to build)
-- `tests/` — 33 passing; metrics cross-checked vs scikit-learn; pipeline asserts S1–S5.
-- Reference docs (keep): `README.md`, `AI Writing.md`, `../CREST_Gold_Award_Guide.md`, `CREST_Official_Guidelines_Research.md`, `CREST_Precedents_And_Patterns.md`.
-
-## CREST writing reminders (from the guide; for the report)
-- 15 criteria, all at "excellent". 1.3 (≥3 approaches, most-missed) and 1.5 (Gantt planned-vs-actual) are easy to drop — don't. 4.1 = the maths (Akem derivation, sensor physics, ROC-AUC). 4.3 = name the creative choices. 4.4 = ≥3 problem arcs. Analysis section ≥ literature review length. Body ~4,500–6,000 words. Harvard refs, 15–25, ≥70% primary, all real.
-
-## Build status / next
-Done: design doc, risk engine, sim, full eval pipeline (S1–S5 pass), tests, repo cleanup.
-Next: ESP32 firmware → figures from JSON → Streamlit app → hardware build guide → CREST report → Student Profile + logbook → self-critique ≥2 passes → verification gate.
+## Build status
+Done: full analysis + real-data results, figures, tests, firmware with on-device parity, report
+(+.docx), profile form (+.docx), logbook, verification, build guide, farm-collection guide,
+`/ai-check` (5/27, Likely Human). Next: fold in hostile-assessor scrutiny findings; then the
+student collects real Alphonso/Kesar data and swaps it in for the farm placeholder.
 
 ## Change log
-- 2026-06-27: Pivoted from MangoGuard (software-only, export-niche, no hardware) to **AamRakshak** (hardware-focal leaf-wetness early-warning, broad smallholder applicability, variety/region-agnostic). Archived old build. Built risk engine + sim + eval; all 5 success conditions pass on honest simulated/bench data.
+- 2026-07-05: Replaced the leaf-wetness project with **AamParakh** (NIR dry-matter meter), grounded in the real public Anderson-Walsh mango NIR benchmark, with a trained model beaten against off-the-shelf sensors. Old builds archived to `extra_stuff/`.

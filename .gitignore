@@ -47,3 +47,8 @@ data/_uploaded_tmp.csv
 .ipynb_checkpoints/
 
 .config/earthengine/
+
+# Archived old build + internal reference material (kept on disk, not part of the sample repo)
+extra_stuff/
+crest-playbook/
+draft v6.pdf

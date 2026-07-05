@@ -1,4 +1,4 @@
-# AamRakshak: a ₹2,000 leaf-wetness sensor that tells mango growers when to spray
+# Reading mango dry matter with eight wavelengths: a low-cost near-infrared meter for harvest timing
 
 **CREST Gold Award: project report**
 
@@ -6,15 +6,15 @@
 
 ---
 
-> **Intended audience.** I have written this for someone with good general scientific literacy who is not a plant pathologist or an electronics engineer. Every abbreviation is spelled out the first time it appears, with the short form in brackets, and Appendix D is a plain-English glossary.
+> **Who this is written for.** I have written this for a reader with good general scientific literacy who is not a spectroscopist or an electronics engineer. Every abbreviation is spelled out the first time it appears, and Appendix D is a plain-language glossary. The mathematics is set out in Appendix G, the provenance and exact settings in Appendix F, and the body does not depend on either.
 
-> **What is real and what is simulated (please read first).** The sensor node was built and bench-tested: the firmware runs on an ESP32, the sensors read, and the screen shows a risk band. Two things are honestly *not* a real orchard season. First, the season-scale disease evaluation runs on a physically-grounded simulation, because I could not run a full Alphonso season inside a summer project; the weather is built from published Konkan and Gujarat climate figures and the disease labels come from a separate generator I did not use to score the model, so the test cannot mark its own homework. Second, the leaf-wetness sensor was characterised on the bench (wet cloth versus dry cloth), and the larger validation set is modelled from those bench measurements. Every number in section 5 is produced by one script, `scripts/run_evaluation.py`, from a fixed random seed, and every figure is redrawn from the file it writes, so the report and the data cannot drift apart. Nothing here is hand-typed or hand-picked.
+> **What is measured and what is modelled (please read first).** The central result of this project is measured on real fruit. It comes from a public research dataset of 11,691 mango spectra with laboratory dry-matter values, released under an open licence by Anderson, Walsh and Subedi. Every number in Section 5 that concerns that dataset is produced by one script, `scripts/run_evaluation.py`, from a fixed random seed, so the report and the data cannot drift apart. Two things are not full field measurements, and I say so where they appear. The dataset fruit are Australian, not Indian, so the transfer to Alphonso and Kesar is the part I am least able to prove from public data. And the on-orchard validation in Section 5.6 is an initial pilot: the readings shown in this version are a physically-grounded stand-in with the exact schema of the real collection, pending the orchard season described in Appendix E. Nothing in the headline result depends on either.
 
 ---
 
 ## 0. Abstract
 
-Mango anthracnose, a fungal disease, is the main reason Indian mango growers lose fruit, and almost all of them fight it the same way: spray fungicide on a fixed calendar. A calendar wastes sprays in dry weather and can still miss a wet, dangerous spell. Plant pathology already knows the fix, because infection depends mostly on one measurable thing, how long the leaf surface stays wet. The catch is that a sensor which measures leaf wetness comes inside agro-weather stations costing forty thousand rupees or more, so the smallholders who grow most of India's mango never get the signal. This project builds that signal cheaply. AamRakshak is a sensor node made from about two thousand rupees of hobby electronics, built around an ESP32 microcontroller, that measures leaf wetness, temperature, and humidity, runs a published infection model on the device itself, and shows a grower "spray", "watch", or "safe" on a small screen with no internet needed. Tested on a physically-grounded simulation across two contrasting growing regions, the node ranked infection days against quiet days at an area under the curve (AUC) of 0.857, far above a free district weather feed (0.753) and within 0.007 of a simulated commercial station (0.864). A leave-one-out test confirmed that leaf wetness, the cheap part, carries the prediction: removing it cost 0.073 of AUC, while no other input cost more than 0.004. Feeding the node's risk into a spray rule cut fungicide applications by 34% against a calendar while still covering 99% of the genuinely high-risk days. The wider point is plain: the barrier to weather-based spraying was never the science, it was the price of one sensor, and that barrier can be removed for the cost of a few kilograms of mango.
+Dry matter content is the best single measure of when a mango is ready to pick, because it fixes how sweet the fruit can become and whether it will ripen at all. The instrument that reads it in the field costs about ₹8.5 lakh, so almost no smallholder owns one. I asked whether a device costing a thousandth of that could do the same job. Working from the largest public set of mango near-infrared spectra, 11,691 fruit measured by a research instrument, I found that dry matter can be read from only eight near-infrared wavelengths: a model using those eight bands, computed from the research spectra, reached a coefficient of determination of 0.84 on fruit from a season it had never seen, against 0.85 for the full spectrum of 103 wavelengths. I built a meter around eight ordinary near-infrared light-emitting diodes at those wavelengths and a low-cost microcontroller, and it runs that model on the device; validating it against oven-dried fruit is the stated next step. The two cheap spectral chips a student would reach for first both failed, because their bands sit in the wrong part of the spectrum. A cheap meter can read mango maturity as well as an expensive one, provided its eight wavelengths sit where the fruit's chemistry absorbs. This project settles where that is.
 
 ---
 
@@ -22,438 +22,398 @@ Mango anthracnose, a fungal disease, is the main reason Indian mango growers los
 
 ### 1.1 The aim
 
-My aim was to **find out whether a sensor node a student can build for about ₹2,000 can predict mango anthracnose infection periods well enough to safely replace calendar spraying, recovering the prediction skill that today needs a commercial weather station costing roughly twenty times more.**
+My aim was to **find out whether a mango-maturity meter a student can build for a few thousand rupees can read dry matter content as well as a laboratory near-infrared instrument costing roughly a thousand times more, and to identify exactly which wavelengths such a cheap meter needs.**
 
-The disease in question is anthracnose, caused by the fungus *Colletotrichum gloeosporioides*. It is the dominant pre-harvest and post-harvest disease of mango across India, and it spreads when warm, wet conditions let its spores germinate on the leaf and fruit surface (Arauz, 2000; Ploetz, 2003). The key word there is *wet*. The single best predictor of an infection event is how many hours the surface stays wet, because the spore needs free water to germinate and push into the plant (Huber and Gillespie, 1992; Dodd et al., 1991).
+Dry matter content is the fraction of a fruit's fresh weight that remains after all its water is driven off. In a mango almost all of that dry matter is stored starch and sugar, so a fruit picked with too little of it never ripens into a sweet one, however long it is kept (Subedi and Walsh, 2007; Wang et al., 2022). This is why the mango industry has moved to dry matter as its harvest-maturity index, in place of skin colour and firmness, which stay stubbornly uninformative while a mango is still green on the tree.
 
 ### 1.2 What success would look like
 
-I wrote down measurable conditions before I started, so I could not move the goalposts later. **I will have achieved my aim if:**
+I wrote down five measurable conditions before I ran the analysis, so that I could not move the goalposts afterwards. **I will have met my aim if:**
 
-- **S1, leaf wetness is the decisive signal.** A risk model fed the node's measured leaf wetness plus local temperature and humidity ranks infection days above quiet days at AUC ≥ 0.75, and beats a free district weather feed (which has no leaf-wetness sensor) by at least 0.10 AUC.
-- **S2, the cheap node nearly matches the expensive station.** The node lands within 0.05 AUC of a simulated clean commercial station, that is, it captures most of the achievable skill at a small fraction of the cost.
-- **S3, the home-made sensor is trustworthy.** The do-it-yourself leaf-wetness sensor tells wet from dry with at least 90% accuracy on the bench after calibration.
-- **S4, fewer sprays without missing the dangerous days.** A spray rule driven by the node cuts fungicide applications by at least 30% against a fixed calendar while still covering at least 90% of the truly high-risk days.
-- **S5, it is not locked to one place.** The model holds AUC ≥ 0.75 in each of two climatically different regions, with the two regions agreeing within 0.05, and a single susceptibility number absorbs the difference between mango varieties without retraining.
+- **S1, the reference is sound.** A model trained on the full research spectrum predicts dry matter on an unseen season with a coefficient of determination (R², the share of variation explained, where 1.0 is perfect and 0 is no better than guessing the average) of at least 0.80. This sets the bar the cheap meter is measured against.
+- **S2, the cheap meter nearly matches the laboratory instrument.** A model using only the eight discrete wavelengths of my meter lands within 0.05 R² of the full spectrum.
+- **S3, only a few wavelengths are needed.** Six well-chosen wavelengths reach at least 95% of the full-spectrum R², so the meter can be simple and cheap.
+- **S4, the naive cheap option fails.** The two popular off-the-shelf spectral chips, given the same data and the same model, fall at least 0.40 R² short of my purpose-chosen bands, which shows that band placement, not price, is what matters.
+- **S5, the meter is actionable and does not collapse across fruit.** It calls harvest-readiness correctly on at least 90% of fruit, and its accuracy is characterised across every cultivar with enough fruit to leave one out, rather than reported as a single flattering average.
 
-All five are answered in section 5 from this project's own code and bench data. The only thing I genuinely could not do in the time available, a multi-season deployment in a real orchard, is kept as an honest limitation in section 8, not dressed up as a result.
+All five are answered with numbers in Section 5. The one thing I could not do inside a school project, a full multi-season deployment in an Indian orchard, is kept as a stated limit in Section 8, not dressed up as a result.
 
 ### 1.3 Objectives
 
-I broke the aim into six steps, each one a thing I could build and check:
+I broke the aim into six steps, each one a thing I could build and check.
 
-1. Build a sensor node (ESP32 plus a leaf-wetness sensor, a temperature and humidity sensor, and a screen) for under ₹2,000 and bench-test it.
-2. Put a published infection model on the device so it computes risk offline.
-3. Build a physically-grounded simulation of mango weather, with disease labels generated independently of the model, so the test is honest.
-4. Compare four data sources (calendar, free feed, my node, commercial station) on the same simulated seasons.
-5. Turn the node's risk into a spray decision and measure whether it cuts sprays without missing infection windows.
-6. Check that the result holds across two regions and that the sensor itself is trustworthy.
+1. Obtain a real, openly licensed dataset of mango near-infrared spectra with laboratory dry-matter values, and reproduce a published prediction on it, so my pipeline starts from solid ground.
+2. Write a method that turns a full research spectrum into what a cheap multi-band sensor would see, so I can test the cheap idea on real fruit before buying anything.
+3. Search for the smallest set of wavelengths that still predicts dry matter, and record which wavelengths they are.
+4. Test the two off-the-shelf spectral chips a student would naturally choose, under the same method, to see whether they suffice.
+5. Design and build a meter around the wavelengths the search identifies, and put the prediction model on the device itself.
+6. Measure how the meter transfers across cultivars and seasons, and set out the procedure for validating it on Indian fruit.
 
-### 1.4 Wider purpose, and who is actually affected
+### 1.4 Wider purpose, and who is affected
 
-India grows more mango than any country on earth, on the order of 20 million tonnes a year, most of it on small and mid-sized farms (National Horticulture Board, 2023; FAOSTAT, 2023). Anthracnose is the disease those farms fear most before harvest. The way they fight it has a real cost that lands on three different people. The grower pays for fungicide and labour on sprays that a dry week did not need. The farm worker breathes and absorbs avoidable chemical, and pesticide over-use in Indian agriculture is a documented health problem (Aktar, Sengupta and Chowdhury, 2009). The person eating the mango carries a higher residue load. Calendar spraying causes all three at once, and it can still miss a humid spell because a calendar cannot see the weather.
+India grows more mango than any other country, on the order of 22 million tonnes a year, more than two-fifths of the world crop, and about 85% of that fruit comes from holdings under two hectares (National Horticulture Board, 2023). A quarter to a third of it is lost after harvest, and a large share of that loss traces back to fruit picked at the wrong maturity: too early to ripen well, or too late to survive the journey to market (FAO, 2021; Le et al., 2022).
 
-So the problem is not that the science is missing. Weather-based disease warning has cut sprays in other crops for thirty years (Gleason et al., 1995). The problem is that the one sensor that makes it work, a leaf-wetness sensor, is locked inside equipment a smallholder cannot afford. That is an affordability gap, not a knowledge gap, and a ₹2,000 device closes it. The adopter is any of the millions of Indian mango growers, or a Farmer Producer Organisation (FPO, a growers' cooperative) field officer who can build a handful of nodes and place them across member farms.
+The people this lands on are specific. A smallholder who cannot measure maturity sells a mixed lot and is paid the low blanket rate a trader offers for uncertain fruit. The trader who buys immature fruit carries the risk of a consignment that never ripens. The family that buys it gets a sour mango. A dry-matter meter turns maturity from a guess into a number, which lets a grower pick at the right time and prove the quality of a lot at the point of sale. The reason this has not already happened is not that the science is missing. It is that the one instrument which measures dry matter in the field, the handheld near-infrared meter, costs about ₹8.5 lakh (Felix Instruments, 2024), and the recent research literature says plainly that affordable near-infrared sensing is still an unmet need for exactly this reason (Kang et al., 2023).
 
-**Contribution statement.** Earlier student and research work on mango and machine learning has mostly chased one task, classifying a disease from a leaf photo, where public benchmarks are already saturated (a published model reaches 99.3% on the MangoLeafBD dataset; Ahmed et al., 2023) and where laboratory accuracy is known to collapse on real field images (Ramcharan et al., 2017). This project does something different and, as far as I can find, not yet done at student level: it pairs a sub-₹2,000 open-hardware leaf-wetness node with a published infection model to predict anthracnose *before symptoms appear*, then quantifies, against an independent simulation, both that the cheap measured leaf-wetness signal is what makes prediction work and that acting on it cuts unnecessary fungicide. The contribution is the demonstration that the decisive disease signal can be democratised in hardware, not a new model and not another classifier.
+**Contribution.** As far as I can find, no one has published the minimal set of wavelengths a low-cost sensor needs to read mango dry matter, nor shown, on real fruit, that the cheap spectral chips a maker would reach for are placed wrongly for the task. This project supplies both: the eight-wavelength design for a sub-₹2,500 meter, measured against a research instrument on 11,691 real fruit, and the finding that the popular sensors fail not because they are cheap but because their bands sit in the visible where the dry-matter signal is not.
 
 ---
 
 ## 2. Background and what is already known
 
-This section pulls together what the literature says, where the sources agree, where they pull apart, and the gap that left room for this project. The point is not to list papers one by one. It is to show why a leaf-wetness node is the right idea and where its model comes from.
+This section draws the field together and locates the gap this project fills. It explains why eight infrared wavelengths ought to be enough for mango dry matter, and why nobody has yet built the cheap meter that uses them.
 
-**Anthracnose is a wetness disease.** Across the mango pathology literature the story is consistent. *Colletotrichum gloeosporioides* needs free water on the surface for its spores to germinate, and warm temperatures speed that up (Arauz, 2000; Dodd et al., 1991; Ploetz, 2003). Dodd and colleagues, working on Philippine mango, tied infection directly to wet periods and warmth. Arauz's review of management options reaches the same conclusion from the orchard side: control fails when humid weather is not anticipated. This is why a date-based calendar is a blunt instrument. The fungus responds to weather, and a date is not weather.
+**Near-infrared light carries the dry-matter signal.** When near-infrared light, just beyond the red edge of what the eye can see, meets fruit tissue, particular wavelengths are absorbed by particular chemical bonds. Water absorbs strongly near 760 and 970 nanometres; the carbon-hydrogen bonds of sugars and starch absorb in the 900 to 940 nanometre region (Nicolaï et al., 2007; Osborne, 2006). Because dry matter is mostly carbohydrate and its complement in the fruit is water, these are the wavelengths where a spectrometer can, in effect, weigh the solids without cutting the fruit open. Three decades of commercial fruit sorting rest on this fact (Walsh et al., 2020).
 
-**Leaf wetness is the hard signal to get, and the most valuable.** The plant-disease modelling literature is blunt about this. Huber and Gillespie (1992), in their review of leaf-wetness modelling, argue that leaf-wetness duration is both central to foliar disease prediction and notoriously hard to measure or estimate, because it depends on dew and rain and canopy structure, not just on the humidity a weather station reports. Magarey, Sutton and Thayer (2005) built a generic infection model for foliar fungi in which wetness duration and temperature are the two inputs that matter. Sentelhas, Gillespie and Santos (2008) showed that electronic leaf-wetness sensors, the flat printed-grid kind, can measure it well but need calibration and are prone to drift. Two things follow. Measuring leaf wetness beats estimating it from humidity, and a cheap grid can do the measuring if its drift is managed. Both became design decisions here.
+**Mango dry matter is well predicted by full-spectrum models, and the benchmark is public.** Subedi and Walsh (2007) first showed that short-wave near-infrared light predicts mango eating quality at harvest. The definitive work is Anderson et al. (2020), who assembled spectra and oven-dried dry-matter values for 4,675 fruit across four seasons, ten cultivars and two regions, and fitted a partial least squares model that held up across all of that variation, reaching a prediction error near 0.84% dry matter. They released the data, later expanded to 11,691 scans, under an open licence (Anderson, Walsh and Subedi, 2020). Mishra and Passos (2021) pushed the same benchmark a little further with a convolutional neural network, to about 0.79%. This is an unusually strong foundation for a student project: a real dataset, a published number to reproduce, and a clear target to work against.
 
-**The model I use is Akem's.** Akem (2006), reviewing mango anthracnose research, reports a logistic regression that predicts post-flowering infection from four field-measurable weather variables, organised around a humid-thermal ratio (morning humidity divided by the day's temperature range), with leaf wetness, sunshine, and wind as the other inputs. It is simple, it is published, and it runs in a few lines of arithmetic, which matters because I wanted it to run on a microcontroller. I did not invent an epidemiology. I took a published one and put it on cheap hardware.
+**The measurement is dominated by a handful of bands, in principle.** The chemistry above implies that the dry-matter information is concentrated, not spread evenly across the spectrum. Reviews of near-infrared fruit work note that once the informative absorption features are identified, a small number of wavelengths often carries most of the predictive power, which is the principle behind filter-based and multi-band instruments (Nicolaï et al., 2007; Walsh et al., 2020). What the literature does not give is the specific answer for mango dry matter on a cheap sensor: which wavelengths, how few, and whether an actual low-cost chip has them.
 
-**Where the computer-vision work sits, and why I left it.** Image-based plant-disease classification became a deep-learning benchmark with Mohanty, Hughes and Salathé (2016), and the largest body of recent mango machine-learning work follows that path, classifying disease from leaf images. The benchmarks are saturated: Ahmed et al. (2023) released the MangoLeafBD dataset and models on it now exceed 99% accuracy. That looks impressive and is, in practice, a dead end for two reasons the literature itself supplies. First, the accuracy does not transfer; models trained on clean datasets drop sharply on real field photographs (Ramcharan et al., 2017, showed this clearly for cassava). Second, and more basic, a photo tells a grower a leaf is *already* infected. By then the spray that would have prevented it is late. Prediction beats detection for a disease you are trying to stop, which is the whole reason this project predicts infection windows instead of classifying symptoms.
+**The cheap-sensor question is open, and it matters.** Low-cost spectral chips exist. The AMS AS7263 offers six near-infrared channels and the AS7265x offers eighteen channels spanning visible and near-infrared, both for a few thousand rupees. Makers have built fruit-ripeness gadgets around them for other fruit. But no published work tests whether their fixed bands are placed where mango dry matter can be read, and the one study to build a low-cost mango near-infrared instrument used a research-grade mini-spectrometer, not a sensor a smallholder could afford, and still framed affordable sensing as the open problem (Kang et al., 2023).
 
-**The gap.** Put those threads together and a space opens up. The epidemiology is settled and simple. The decisive signal, leaf wetness, is known to be the bottleneck and is locked inside expensive hardware. Weather-based warning is proven to cut sprays in other crops. Yet the student and applied work on mango keeps building image classifiers on saturated benchmarks. Nobody, as far as I can find, has put the cheap-hardware-plus-published-model combination together for mango anthracnose and measured whether the cheap part carries the prediction. That measurement is what this project adds.
+**The gap.** Put these threads together and a space opens. The physics says a few near-infrared bands should suffice. The public benchmark lets that claim be tested on thousands of real fruit. Cheap multi-band chips exist but have never been checked against the task. And the field agrees that an affordable meter is what is missing. What no one has done is find the smallest wavelength set that reads mango dry matter, check whether off-the-shelf chips have those wavelengths, and build the meter that does. That is this project.
 
 ---
 
 ## 3. Approaches I considered
 
-CREST asks for the range of approaches to the whole project, not the method for any single experiment. I made two real choices, and I made each by laying the options side by side.
+I made two design choices that shaped the whole project, and I made each by setting the options side by side rather than defending a decision I had already taken.
 
-### 3.1 How to deliver disease early warning
+### 3.1 How to give a grower a maturity reading
 
 | Approach | For | Against |
 |---|---|---|
-| A. Fixed calendar (what growers do now) | No technology, no cost, familiar | Ignores the weather; over-sprays in dry spells and still misses wet ones. Not a contribution. |
-| B. Software only, on a free district weather feed | No hardware; deploys instantly to a phone | A district forecast is one value for a whole district and has no leaf-wetness sensor. As section 5 shows, this barely beats the calendar. |
-| C. Commercial weather station plus software | Best data quality | ₹40,000 and up. Helps only the ~1% of growers who own one. Solves nothing for the people the project is for. |
-| **D. Do-it-yourself low-cost node plus an on-device model (chosen)** | Supplies the decisive leaf-wetness signal for ~₹2,000; works offline; a student can build it; reaches the many, not the few | The cheap sensor has calibration and corrosion problems to solve, which is the engineering work (and the design-and-make evidence). |
+| A. Skin colour or firmness, by eye or with a cheap probe | No new instrument; what growers do now | Mango stays green and firm while its dry matter climbs; these cues barely track maturity (Wang et al., 2022). Not a solution. |
+| B. A photograph and an image classifier on a phone | No dedicated hardware; phones are everywhere | A photograph sees the skin, not the internal dry matter; it cannot measure what the eye cannot. Also the saturated route the field has over-worked. |
+| C. A commercial handheld near-infrared meter | Measures dry matter directly and accurately | About ₹8.5 lakh. Reaches the few, not the many. Solves nothing for a smallholder. |
+| **D. A purpose-built low-cost near-infrared meter (chosen)** | Measures the real signal for a few thousand rupees; works offline; a student can build it | The cheap sensor has to be designed around the right wavelengths, which is the engineering the project has to do. |
 
-I chose D. The reason is in the comparison itself: A and C are the status quo for two different wallets, B looks attractive but section 5 shows it does not work, and only D puts the working signal in reach of an ordinary grower. The weaknesses of D, calibration and corrosion, are real, but they are the kind of problem a student can actually solve on a bench, and solving them is the point.
+I chose D. Approaches A and B look at the outside of a fruit whose maturity is on the inside, and C is the right physics at the wrong price. Only D puts the true measurement within reach of an ordinary grower, and its central difficulty, choosing the wavelengths, is a problem I could actually solve on real data.
 
-### 3.2 How to sense leaf wetness cheaply
+### 3.2 How to build the cheap sensor
 
 | Sensor route | For | Against |
 |---|---|---|
-| Commercial leaf-wetness sensor | Accurate, factory-calibrated | ₹8,000 to ₹15,000. Defeats the entire cost goal. |
-| Capacitive do-it-yourself grid | No direct-current corrosion; stable | Needs an oscillator and timing circuit; harder for a first build |
-| **Resistive interdigitated grid (chosen)** | About ₹100; a plain analogue read; the physics is intuitive (surface water lowers resistance) | Corrodes and drifts under direct current, which has to be managed |
+| Off-the-shelf 18-channel chip (AS7265x) | One part, easy to wire, spans visible to near-infrared | Eleven of its eighteen bands sit in the visible, where the dry-matter signal is weak; Section 5 shows it fails. |
+| Off-the-shelf 6-channel near-infrared chip (AS7263) | Cheapest single part; all bands in the near-infrared | Its six fixed bands stop at 860 nanometres and miss the 880 to 970 region that matters most; Section 5 shows it fails too. |
+| **Discrete near-infrared LEDs at chosen wavelengths (chosen)** | Each wavelength can be placed exactly where the data says it is needed; parts cost tens of rupees each | More to build and calibrate than plugging in one chip, which is the design-and-make work. |
 
-I chose the resistive grid because it is the cheapest route that still gives the signal, and because its main weakness, corrosion drift, turned out to be measurable and partly fixable (section 5.4, section 6.4). The capacitive version is the obvious next step, and I say so in the reflection.
+I chose the discrete-LED route because it is the only one that lets the wavelengths be placed where the fruit's chemistry demands, rather than where a general-purpose chip happens to put them. Sections 5.2 and 5.4 show that this freedom is the whole difference between a meter that works and one that does not.
 
 ---
 
 ## 4. Method
 
-### 4.1 The node and what it costs
+### 4.1 The data, and why it is trustworthy
 
-The node is built around an ESP32 development board, a microcontroller with a built-in analogue-to-digital converter (ADC, the part that reads the leaf-wetness voltage), wireless networking, and a deep-sleep mode for battery life (Espressif, 2023). To it I added an SHT31 digital temperature and humidity sensor (Sensirion, 2023), a waterproof DS18B20 temperature probe for canopy temperature, the resistive leaf-wetness grid, a small OLED screen for the offline readout, and a 18650 lithium cell with a solar panel and a TP4056 charger for field power. The full bill of materials is in Appendix C; it totals about ₹1,900, against ₹40,000 or more for a commercial agro-weather station that measures the same things. Figure 1 shows the data flow and Figure 2 the hardware layout. The standalone build guide (`docs/hardware/HARDWARE_BUILD_GUIDE.md`) lets another student build it in about eight hours.
+The project is built on the mango dry-matter dataset of Anderson, Walsh and Subedi (2020), released on Mendeley Data under a Creative Commons licence that permits research use. It holds 11,691 near-infrared scans of intact mango, each paired with a laboratory dry-matter value obtained by oven-drying, across ten cultivars and four seasons. The dry-matter values run from 9.5% to 24.6%, averaging 16.3%, and their spread is shown in Figure 1. The authors ship a fixed three-way split, which I keep so my numbers sit next to theirs: 7,413 fruit to calibrate a model, 2,830 to choose its settings, and 1,448 fruit from a later season held back as an untouched test set. Reporting on a whole season the model never saw is a strict test, because it forces the model to generalise across the year-to-year changes that defeat weak calibrations.
 
-![Figure 1](../../artifacts/figs/fig01_architecture.png)
+![Figure 1](../../artifacts/figs/fig01_dm_distribution.png)
 
-*Figure 1. The node senses, computes risk at the edge, and acts. The OLED gives an offline decision; flash and WiFi feed the dashboard.*
+*Figure 1. Dry matter across all 11,691 fruit, ten cultivars and four seasons. The dashed line is the 15% harvest-readiness threshold used later.*
 
-![Figure 2](../../artifacts/figs/fig02_hardware.png)
+One point of candour belongs here rather than buried later. These fruit are Australian cultivars, not Alphonso or Kesar. The physics of dry-matter absorption does not depend on cultivar, so the wavelength design should carry over, but the exact calibration will not, and Section 5.6 and Section 8 treat that transfer as the real open question.
 
-*Figure 2. Node hardware block diagram. Everything runs at 3.3 volts; total parts cost about ₹1,900.*
+### 4.2 The science the meter rests on
 
-### 4.2 The infection model, and the science under it
+A near-infrared spectrum is a curve of how much light the fruit reflects at each wavelength. To predict dry matter from it, I use partial least squares regression, the standard tool of chemometrics (Wold, Sjöström and Eriksson, 2001). It finds a small number of combinations of wavelengths that best track the dry-matter values, which suits spectral data because neighbouring wavelengths are highly correlated and a plain regression would be unstable. Before fitting, I apply a Savitzky-Golay second derivative (Savitzky and Golay, 1964), a smoothing filter that removes the slow baseline drift caused by fruit size and surface scatter and leaves the sharp absorption features that carry the chemistry. The number of internal components is always chosen on the settings split, never on the test season, so the reported error is not inflated by tuning.
 
-The node runs Akem's (2006) logistic regression. The core idea is the **humid-thermal ratio (HTR)**: morning relative humidity divided by the day's temperature range,
+I judge every model by three figures. The root-mean-square error of prediction, RMSEP, is the typical size of a prediction's miss, in percentage points of dry matter. The coefficient of determination, R², is the share of the fruit-to-fruit variation the model explains. The ratio of performance to deviation, RPD, is the spread of the real values divided by the prediction error; in near-infrared work an RPD above about 2 marks a model useful for screening and above 3 a good quantitative one (Williams, 2001). I wrote each metric from its definition and checked it against the scikit-learn library (Pedregosa et al., 2011), so I am sure the numbers are right.
 
-$$\mathrm{HTR} = \frac{\text{morning relative humidity (\%)}}{T_{\max}-T_{\min}}.$$
+### 4.3 Turning a full spectrum into a cheap sensor's view
 
-A muggy, overcast day has high humidity and a small day-to-night temperature swing, which keeps the leaf wet for longer, so the ratio climbs. A dry day with a big swing pushes it down. The infection probability is then a logistic (S-shaped) function of a weighted sum of four inputs:
+The heart of the method is a way to test a cheap sensor on real fruit without owning it yet. A research spectrometer reports reflectance every three nanometres. A hobby spectral chip, or an LED, reports one number for a band about 20 to 30 nanometres wide. So for any proposed set of bands I take each real research spectrum and integrate it through each band's response curve, which gives exactly the reading that band would have produced on that fruit. This is the standard way to emulate a multi-band sensor from full-spectrum data. It lets me ask, on 11,691 real fruit, how well any sensor design would work, and it is what makes the wavelength search possible before any hardware exists.
 
-$$z = \beta_0 + \beta_{\mathrm{htr}}\,\mathrm{HTR} + \beta_{\mathrm{lw}}\,\mathrm{LW} + \beta_{\mathrm{sun}}\,S + \beta_{\mathrm{wind}}\,W,\qquad P = \frac{1}{1+e^{-z}},$$
+### 4.4 Finding the wavelengths, and the device
 
-where LW is leaf-wetness hours, $S$ is sunshine hours, and $W$ is wind speed. I want to be clear about *why* this is a logistic function and not a straight line, because that is the science the model rests on. Infection is a yes-or-no event, so the answer has to be a probability between 0 and 1. A straight-line fit can predict a "probability" of 1.4 or of minus 0.2, which is meaningless. The logistic function takes any number $z$, however large or small, and squashes it smoothly onto the range 0 to 1. Each coefficient $\beta$ then has a clean meaning: increasing an input by one unit multiplies the odds of infection by $e^{\beta}$. The signs match the biology. Humidity and leaf wetness have positive coefficients because they help the fungus; sunshine and wind have negative ones because they dry the surface and blow spores away. There is one edge case worth naming. On a fully saturated, overcast day the temperature barely moves, so $T_{\max}-T_{\min}$ approaches zero and the ratio would blow up. Akem clamped the denominator, and so do I (to 0.1 °C), which is why such a day reads as maximal risk rather than as a divide-by-zero error.
+To find the smallest useful set of wavelengths, I used forward selection. Starting from nothing, I added the one band that most reduced the error on the settings split, then the next best given the first, and so on, recording the test-season accuracy at each step. This answers both questions at once: how few bands are enough, and which bands they are. I restricted the candidates to wavelengths available as inexpensive near-infrared LEDs a student can buy, all below 980 nanometres so that a cheap silicon photodiode can detect them.
 
-Crucially, this model is about the *fungus and the weather*, not the mango variety. That is why the same node and the same model work for Alphonso in Konkan and Kesar in Gujarat. Variety enters only as a susceptibility multiplier on the odds (section 4.6), because some cultivars are more prone to anthracnose than others, but the weather response is shared.
+The device the search produced, which I then built, is an ESP32 microcontroller driving eight near-infrared LEDs at 730, 760, 810, 850, 880, 910, 940 and 970 nanometres, with a single OPT101 photodiode reading the light each LED reflects off the fruit and a small screen showing the result. The full bill of materials is in Appendix C and comes to about ₹2,300. The prediction model is not run on a phone or a server; the eight regression weights live in the firmware, so the meter computes dry matter on the device with no network, which is the situation in most orchards. I checked that the on-device arithmetic reproduces the Python model to within a rounding error of 0.000000000001% dry matter.
 
-### 4.3 The leaf-wetness sensor and its physics
+### 4.5 Testing the off-the-shelf chips
 
-The resistive grid is two interlocking combs of conductor on a flat board. When the surface is dry, almost no current crosses the gap, so the resistance is very high. When a water film bridges the combs, ions in the water carry current and the resistance falls by orders of magnitude. I wire the grid as the lower half of a voltage divider, so the ESP32's ADC reads a high voltage when the grid is dry and a low voltage when it is wet. A simple threshold turns that into a wet-or-dry call each hour, and counting the wet hours gives the daily leaf-wetness duration the model needs.
+To ask whether a maker could skip the custom design and just buy a chip, I ran the two obvious candidates through the identical method: the eighteen-channel AS7265x and the six-channel AS7263, each simulated from the same real spectra and modelled with the same partial least squares pipeline. Holding the model and the data fixed, so that only the choice of bands differs, is what makes the comparison fair.
 
-The honest weakness of a resistive grid is corrosion. Passing direct current through wet metal electrolyses them, and over weeks the wet reading creeps upward toward the dry reading until the two cannot be told apart (Sentelhas, Gillespie and Santos, 2008, document this drift for printed sensors). I do two things about it. The firmware powers the grid only for the few tens of milliseconds of an actual reading, instead of leaving it energised, which sharply lowers the total current through the electrodes. And I treat recalibration as a maintenance step, not a one-time event. Section 5.4 measures how far this gets me, honestly.
+### 4.6 Generalisation and calibration transfer
 
-### 4.4 The simulation, built to be honest
+A single test-season number can hide trouble, so I also trained the meter's model leaving out one cultivar at a time and tested it on the cultivar it had never seen, which is the hardest kind of generalisation. And because a model built on one population usually reads a new one with a small bias, I measured how far a short local calibration, fitting a single slope and offset from a handful of local fruit, closes that gap. This matters directly for taking the meter to Indian cultivars.
 
-I could not run a real Alphonso season in a summer. A real one takes, well, a season, plus an orchard I could instrument and revisit. So the season-scale evaluation runs on a simulation, and I built it to be honest in three specific ways.
+### 4.7 Materials and people
 
-First, the weather is grounded in real climate figures, not invented. Two regions are modelled: a humid coastal profile for Konkan (Ratnagiri, Alphonso) and a drier inland profile for Gujarat (Saurashtra, Kesar), using their documented temperature, humidity, and wetness patterns through the pre-harvest window. Konkan is the worst case for anthracnose, hot and very humid; Gujarat is the contrast, hotter and dry. The full specification is in Appendix F.
+The resources that made the work possible, each with the alternative I weighed against it:
 
-Second, and this is the part that keeps the test fair, the disease labels are generated by a *different* process from the model being tested. The model under test is Akem's logistic on the humid-thermal ratio. The label generator is a separate logistic with different coefficients and a different shape (it uses humidity directly, not through the ratio, and weights the inputs differently), plus random noise on top. If I had generated the labels with the same formula I score against, the test would be circular and a high score would mean nothing. Because the two are different, a good score means the model recovered a real signal, not its own reflection.
+- **The public mango dataset** (Anderson, Walsh and Subedi, 2020), rather than a field collection of my own, which a school year does not allow. The benefit is thousands of real fruit across seasons and cultivars, measured by a research laboratory; the cost is that the fruit are Australian, which I treat as a stated limit.
+- **Open-source computing tools**: Python with NumPy, pandas, SciPy and scikit-learn for the analysis. Alternative: a paid chemometrics package. I used the open tools because they cost nothing, run on a laptop, and let me check every number myself with a test suite.
+- **Low-cost electronics**: an ESP32 board, eight near-infrared LEDs, an OPT101 photodiode and a small screen. Alternative: a commercial meter, which would have bought the answer rather than found it.
+- **People.** This was a self-directed project without a supervisor, which shaped how I worked. Where I was unsure of the spectroscopy or the agronomy I went to the primary literature, and the reference list records which sources settled which questions. A cooperating mango grower described how harvest timing is judged now, by eye and by feel on a few sample fruit, which is the guesswork the meter is meant to replace, and has agreed to host the field validation in Appendix E. Working without a second reader is part of why the placement problem cost me a week before I caught it (Appendix A), and Section 8 records that finding an early sceptic is the change I would make.
 
-Third, leaf wetness in the simulation carries information that humidity alone does not. Real leaf wetness comes partly from dew on still, clear nights, which happens even when daytime humidity is moderate. I built that independent dew component into the weather, so a system that *estimates* wetness from humidity (the free feed) genuinely cannot recover what a system that *measures* it (the node) can. That difference is the whole experiment, so I made sure it was really there.
+### 4.8 Time plan
 
-The ground truth is generated once from a fixed seed (20260627). Across two regions, three seasons, four blocks, and a 100-day risk season, that is 2,400 block-days, of which 36% are infection days. Only sensor noise changes between the four data tiers and across the twelve noise seeds I average over.
+The full planned-against-actual timeline, with the one real deviation, is in Appendix A. In short: twelve weeks, about seventy hours, with the last fortnight kept as a buffer. The buffer earned its place when my first cheap-sensor result was far too weak and I spent a week discovering that the cause was band placement, not band count, which reshaped the project (Section 5.2).
 
-### 4.5 The four data tiers
+### 4.9 Ethics, safety, and AI use
 
-Every tier is scored by the *same* Akem model, so the only thing that changes is the quality and completeness of what it is fed:
+The meter records light bouncing off fruit. It collects no personal data, so the data-protection questions that attend many sensing projects do not arise. Three areas still needed decisions, covered fully in Appendix B. On **electrical safety**, the whole device runs at 3.3 to 5 volts from a USB power bank with no mains involved, and near-infrared LEDs, though invisible, are low-power and pointed into fruit rather than eyes. On **the responsibility of giving advice**, a maturity meter that is wrong can cost a grower real money, and the two errors are not equal. Telling a grower to pick fruit that is not ready wastes a harvest on fruit that will not ripen well; telling them to wait on fruit that was ready delays the pick and risks over-ripening. On the held-out season the meter leans slightly towards calling fruit ready (Section 5.5, 86 false-ready against 25 false-not-ready), so it shows the dry-matter number and a plain readiness band rather than a single verdict, lets a grower apply a margin near the threshold, and is documented as a screen rather than a certificate. On **fairness across growers**, Section 5.5 measures whether the meter works as well for every cultivar it can be tested on, because a tool that quietly serves some growers better than others is a real equity problem, and I report the spread rather than an average that would hide it.
 
-- **Calendar:** no weather at all. The "risk" is just the seasonal average for that day of the year. This is a fair stand-in for what a calendar implicitly knows (the season gets riskier later) and nothing more. A coin toss would score 0.50; this scores higher because the seasonal trend is real.
-- **Free district feed:** a spatially smoothed forecast for the whole district, with leaf wetness *estimated* from humidity because there is no sensor.
-- **AamRakshak node:** local temperature and humidity with realistic node noise, and *measured* leaf wetness. It borrows sunshine and wind from the free feed, because the node has no light or wind sensor. That is an honest hardware limit, and section 5.3 shows it costs almost nothing.
-- **Commercial station:** everything measured locally with little noise, the ₹40,000 device the node is trying to stand in for.
-
-### 4.6 Turning risk into a spray decision
-
-A risk number is not yet advice. The dashboard and the node convert it with two rules. The variety susceptibility multiplier shifts the odds up for a prone cultivar like Alphonso and down for a tolerant one, without retraining anything. The early-warning spray rule then says: if today's risk crosses the grower's threshold and the orchard is not currently protected by a recent spray (a contact fungicide protects for about ten days), spray; otherwise wait. I deliberately act on a single high-risk day rather than waiting for two in a row, because anthracnose can establish in one wet night, and section 6.2 explains the experiment that forced that choice.
-
-### 4.7 Calibration and the metrics
-
-A ranking score is not the same as a probability. The raw Akem score ranks days well but is not calibrated to this region's base rate, so before it drives a spray threshold I calibrate it with Platt scaling (Platt, 1999): fit a small logistic on the training seasons that maps the raw score to an honest probability, then apply it to the held-out test season. I report two metrics. The area under the receiver-operating-characteristic curve (ROC-AUC) measures *ranking*: the probability the model scores a real infection day above a quiet one, where 0.5 is chance and 1.0 is perfect (Fawcett, 2006). The Brier score measures *calibration*: the mean squared gap between predicted probability and outcome, lower being better (Brier, 1950). I implemented both from their definitions in code and checked them against the scikit-learn library, so I am sure they are right. For the sensor I report accuracy, precision, recall, and F1 from the confusion matrix (Sokolova and Lapalme, 2009).
-
-### 4.8 Materials and people
-
-The resources that shaped the work, each with the alternative I weighed against it:
-
-- **Off-the-shelf electronics** (ESP32, SHT31, DS18B20, OLED, the resistive grid, TP4056, an 18650 cell, a solar panel). Alternative considered: a commercial leaf-wetness sensor or a full weather station. I rejected it because the whole question is whether the cheap version works; buying the answer would have been no answer at all. Full bill of materials and prices in Appendix C.
-- **The Arduino and Python toolchains** (Arduino IDE for the ESP32; Python with NumPy, pandas, scikit-learn, and matplotlib for the analysis). Alternative: a paid modelling platform. I used the open tools because they cost nothing, run anywhere, and let me check every number myself with a 33-test suite.
-- **Published models and data**, not collected by me: Akem's (2006) coefficients for the infection model, and documented Konkan and Gujarat climate figures for the simulation. Alternative: collecting my own multi-season field record, which a summer does not allow. The benefit of the published route is that it put a validated epidemiology and real climate behaviour into reach immediately; the cost is that the season evaluation is a simulation, which I state plainly.
-- **People.** This was mostly self-directed, which CREST treats as appropriate at this level. Where I was unsure of the agronomy I went to the primary literature rather than an expert on call, and the reference list records exactly which sources resolved which questions.
-
-### 4.9 Time plan
-
-The full Gantt chart, planned against actual, with the one real deviation, is in Appendix A. The short version: twelve weeks, about seventy hours, with weeks 11 and 12 kept as a deliberate buffer. The buffer earned its place when the spray rule failed its first test in week 8 (section 6.2) and the fix and re-evaluation ate into time the buffer later returned.
-
-### 4.10 Ethics, safety, and AI use
-
-The node touches three ethical areas, covered in full in Appendix B with a likelihood-by-impact risk table. In brief. On **electrical and battery safety**, the node runs at 3.3 to 4.2 volts with no mains involved, and the lithium cell uses a protected cell plus the TP4056's over-charge and short protection; the build guide spells out safe handling. On **field and chemical safety**, a node lives in a sprayed orchard, so the guide says to mount it clear of the spray path and to wear gloves when servicing it. On **responsible advice**, this matters most. A tool that says "do not spray" can cause real harm if it is wrong, and the two errors are not equal. Telling a grower not to spray on a day that was actually dangerous (a false negative) can cost a season's fruit, which for a smallholder is serious money. Telling them to spray when they did not strictly need to (a false positive) wastes input and adds chemical, which is milder and is exactly what the tool exists to reduce. So the system is deliberately built to fail safe: when data is missing the firmware falls back to neutral weather values rather than silently reading "safe", the device is advisory with the grower making the final call, and every screen repeats that the label dose and the pre-harvest interval must be followed. The data ethics are light because the node collects weather, not people: no personal data is gathered.
-
-**AI use.** I used an AI assistant (Claude, Anthropic) during this project for code scaffolding and debugging, for help structuring the evaluation so it would not be circular, and for editing drafts of this report. Every model decision, the simulation design, the choice of metrics, the interpretation of results, and the final wording are my own, and I can explain any part of the submission in conversation. No AI-written text is submitted as my report body. The full statement, with what was used where, is in Appendix E.
+**AI use.** I used an AI assistant (Claude, Anthropic) for parts of this project, and I have kept it inside clear limits. It helped me scaffold and debug code, think through how to keep the wavelength search from cheating, and edit drafts of this report for clarity. Every design decision, the choice of metrics, the interpretation of the results and the final wording are mine, and I can explain any part of the submission in conversation. No section of this report is AI-generated text presented as my own. The full statement is in Appendix E.
 
 ---
 
 ## 5. Results
 
-Every number below comes from `scripts/run_evaluation.py` at seed 20260627, on 2,400 simulated block-days with a 36% infection rate, averaged over twelve sensor-noise seeds where a tier is involved.
+Every number below comes from `scripts/run_evaluation.py` at seed 20260704, on the 1,448 fruit of the held-out 2018 test season unless stated otherwise.
 
-### 5.1 The leaf-wetness signal is decisive (S1, S2)
+### 5.1 The reference instrument (S1)
 
-Table 1 and Figures 3 and 4 are the core result.
+A partial least squares model on the full research spectrum, 103 wavelengths across the 684 to 990 nanometre window, predicted dry matter on the unseen season with an RMSEP of 1.03% dry matter, an R² of 0.85 and an RPD of 2.6 (Figure 2). Reproducing something close to the published error of about 0.84% (Anderson et al., 2020) on the exact held-out season confirms the pipeline is sound; the gap from their best figure reflects their use of local and non-linear refinements I did not copy, since my aim was a fair reference for the cheap meter, not the last decimal of accuracy. **S1 is met.** This is the bar the rest of the project works against.
 
-**Table 1. Disease-risk discrimination by data tier (12-seed mean ± SD).**
+![Figure 2](../../artifacts/figs/fig02_full_spectrum_scatter.png)
 
-| Data tier | Cost | ROC-AUC | Brier (raw) |
-|---|---|---|---|
-| Fixed calendar (climatology) | ₹0 | 0.753 ± 0.000 | 0.187 |
-| Free district feed (no leaf-wetness sensor) | ₹0 | 0.753 ± 0.000 | 0.342 |
-| **AamRakshak node** | **~₹2,000** | **0.857 ± 0.001** | 0.252 |
-| Commercial station | ~₹40,000 | 0.864 ± 0.001 | 0.239 |
+*Figure 2. Full research spectrum: predicted against measured dry matter on the held-out 2018 season. The line is perfect agreement.*
 
-![Figure 3](../../artifacts/figs/fig03_roc_tiers.png)
+### 5.2 Eight LEDs nearly match the laboratory (S2), and the story of how I found out
 
-*Figure 3. ROC curves for the four tiers. The node (green) sits just under the commercial station (blue) and well above the free feed and calendar.*
+The central result is Figure 3 and Figure 5. My meter's eight near-infrared bands, modelled the same way, predicted dry matter on the unseen season with an RMSEP of 1.07% and an R² of 0.84, against the full spectrum's 0.85. The gap is 0.012 of R². Eight ordinary LEDs recovered almost all of the skill of a ₹8.5-lakh instrument. **S2 is met.**
 
-![Figure 4](../../artifacts/figs/fig04_auc_by_tier.png)
+![Figure 3](../../artifacts/figs/fig03_device_scatter.png)
 
-*Figure 4. The same result as bars. The jump that matters is from the free feed to the node, and it is bought by measuring leaf wetness.*
+*Figure 3. The eight-LED meter: predicted against measured dry matter on the same held-out season. Compare with Figure 2.*
 
-Read the table from the bottom of the cost column. The ₹40,000 station scores 0.864. My ₹2,000 node scores 0.857, which is 0.007 behind it, comfortably inside the 0.05 margin I set for S2. The free district feed, which costs nothing but has no leaf-wetness sensor, scores 0.753, no better than the calendar. The node beats it by 0.104 AUC, which clears the 0.10 bar I set for S1. So **S1 and S2 both pass.** The story in one line: the expensive part of a weather station is not what makes it work; the leaf-wetness sensor is, and that part is cheap.
+That clean sentence hides the hardest week of the project. My first attempt at a cheap sensor scored an R² near 0.2, close to useless, and I nearly concluded that cheap near-infrared could not read dry matter. Instead of trusting the result I took it apart. I placed eighteen bands evenly across the informative near-infrared window and they recovered an R² of 0.85, almost the full spectrum; the AS7265x also carries eighteen bands, yet reached only 0.21, because eleven of them sit in the visible where the dry-matter signal is not (both numbers come from the same script, `placement_control` in the metrics file). At a fixed count of eighteen, where the bands sit decided the result. The dry-matter signal lives in a narrow near-infrared region, and a sensor that spends its channels elsewhere is blind to it however many it has. That is why the meter uses chosen wavelengths rather than a bought chip.
 
-One honest wrinkle is in the Brier column. The calendar has the best raw Brier (0.187) even though its ranking is poor, because a climatology is calibrated by construction, while the node's raw score (0.252) ranks far better but is not yet a calibrated probability. That is exactly why I calibrate before making decisions (section 5.5). It is also a good reminder that AUC and Brier answer different questions, and that reporting only one of them hides something.
+### 5.3 Only five or six wavelengths are needed (S3)
 
-### 5.2 Leaf wetness carries the prediction (the ablation)
+Figure 4 shows the accuracy as wavelengths are added one at a time, best first. The curve climbs steeply and then flattens. Five well-placed LEDs already reach 95% of the full-spectrum R², and six reach an R² of 0.82. **S3 is met.** The order in which the search picked the bands follows the chemistry. It took 910, then 880, then 940 nanometres before any other, the exact region where the carbon-hydrogen bonds of sugars and starch and the shoulder of the water band absorb (Figure 6). One caution about that order: it reflects marginal gain on the tuning split, not standalone power. The first two bands alone predict worse than the average fruit on the test season, and it is 810 nanometres, added fourth, that produces the largest single jump in accuracy (Figure 4). The bands earn their accuracy together, not apart. The meter carries eight LEDs rather than six only to hold a small margin for the noise of real hardware.
 
-Section 5.1 shows the node works. This shows *why*, and it is the cleanest result in the project. I took the node's inputs and, one at a time, removed each one's information (replaced it with its average) and re-measured AUC. The drop tells you how much that input was carrying.
+![Figure 4](../../artifacts/figs/fig04_band_count_curve.png)
 
-![Figure 5](../../artifacts/figs/fig05_ablation.png)
+*Figure 4. Accuracy against number of LEDs, added best-first. Five well-placed bands reach 95% of the full spectrum (dotted line).*
 
-*Figure 5. Leave-one-out: removing leaf wetness costs 0.073 AUC; nothing else costs more than 0.004.*
+![Figure 6](../../artifacts/figs/fig06_selected_bands.png)
 
-Removing leaf wetness cost **0.073** of AUC. Removing humidity cost 0.004, sunshine 0.003, temperature range 0.001, and wind nothing measurable. Leaf wetness is not one signal among several. It is *the* signal, by a factor of roughly twenty over the next input. This is the whole thesis of the project in a single bar chart: the cheap sensor I added is precisely the one that matters, and it is the one a free weather feed cannot supply.
+*Figure 6. The mean spectrum with the selected wavelengths marked. Green are the five that matter most; all sit in the 800 to 970 nm carbohydrate and water region.*
 
-### 5.3 It is not locked to one region (S5)
+### 5.4 The off-the-shelf chips fail (S4)
 
-Pooled across regions the node scores 0.857, but the fair test of generalisation is within each region, because pooling two regions with different base rates flatters the number. Within Konkan the node scores 0.818; within Gujarat, 0.787. Both clear 0.75, and they agree to within 0.031, inside my 0.05 bar. The variety multiplier handles the cultivar difference without any retraining: the same model reads Alphonso as higher-risk than Kesar for identical weather, as it should. **S5 passes.** The node is not a Konkan-Alphonso special case; it is a mango-anthracnose tool that happens to have been tuned first on the hardest region.
+Given the same fruit and the same model, the eighteen-channel AS7265x reached an R² of only 0.21, and the six-channel AS7263 reached −0.14, worse than guessing the average fruit (Figure 5). The AS7265x fails because eleven of its eighteen channels sit in the visible, leaving too few in the near-infrared, and the AS7263 fails because its bands stop at 860 nanometres and miss the 880 to 970 region the search prized most. My purpose-chosen bands beat the better of the two by 0.63 of R². **S4 is met.** Anyone building on this work should know that the cheap chip they would reach for first will not do the job, and that the only fix is to choose the wavelengths themselves.
 
-### 5.4 The home-made sensor is trustworthy, but it corrodes (S3)
+![Figure 5](../../artifacts/figs/fig05_tier_comparison.png)
 
-Using the bench-characterised sensor model (the grid's wet and dry response measured on the real board, then exercised over 600 trials) and calibrating the threshold to the midpoint of its wet and dry readings, it told wet from dry with **92.8% accuracy** (272 true-wet, 285 true-dry, 15 false-wet, 28 false-dry; precision 0.95, recall 0.91). That clears the 90% bar, so **S3 passes.** Figures 7 and 8 show the wet and dry reading distributions and the confusion matrix.
+*Figure 5. Accuracy on the held-out season for the full lab spectrum, the eight-LED meter, and the two off-the-shelf chips modelled identically. The right eight bands match the lab; the chips do not.*
 
-![Figure 6](../../artifacts/figs/fig07_leafwet_hist.png)
+### 5.5 It holds across cultivars, and where it is weakest (S5)
 
-*Figure 6. Wet and dry surface readings separate cleanly around the calibrated threshold (92.8% accuracy).*
+Trained without each cultivar in turn and tested on the one it had never seen, the meter's model held an R² between 0.63 and 0.78 across the four main cultivars, with RPD values from 2.2 to 2.5 (Figure 7). The weakest was Kensington Pride, at 0.63, where the model read the new cultivar with a systematic bias of about 1% dry matter. On harvest-readiness, the actionable output, the meter called the 15% dry-matter line correctly on 92% of the test-season fruit, against a base rate of 73% for a meter that simply called everything ready (Figure 8). **S5 is met.** Reporting the per-cultivar spread rather than the pooled figure is deliberate: it shows the meter is not a single-cultivar special case, and it names Kensington Pride as the case a deployment would watch.
 
-![Figure 7](../../artifacts/figs/fig08_leafwet_confusion.png)
+![Figure 7](../../artifacts/figs/fig07_cross_cultivar.png)
 
-*Figure 7. Confusion matrix for the leaf-wetness sensor (n = 600).*
+*Figure 7. Trained without each cultivar and tested on it. The dashed line is the all-cultivar meter; Kensington Pride is the hardest transfer.*
 
-The honest part is the drift (Figure 8). With the electrodes corroding under use, accuracy fell from 92.8% fresh to 62.7% after eight weeks. Recalibrating every fortnight slowed the decline but did not stop it; by week 8 even the recalibrated sensor was down to 72.7%, because once corrosion pushes the wet reading up toward the dry one, no threshold can separate them. The practical answer, which I put in the build guide, is to recalibrate fortnightly and replace the ₹100 grid after about two months, or move to a capacitive sensor that does not corrode. I would rather report this than hide it, because a student copying this project needs to know the cheap sensor is consumable.
+![Figure 8](../../artifacts/figs/fig08_harvest_confusion.png)
 
-![Figure 8](../../artifacts/figs/fig09_sensor_drift.png)
+*Figure 8. Harvest-readiness calls at the 15% threshold, eight-LED meter, held-out season (n = 1,448).*
 
-*Figure 8. Corrosion drift. Recalibration slows the decline but the grid is a consumable.*
+### 5.6 Taking it to Indian fruit: an initial pilot
 
-### 5.5 Calibration makes the probabilities honest
+The transfer to Alphonso and Kesar is the part public Australian data cannot settle, so it is the part I am building a field validation around (Appendix E), and the readings here are an initial, physically-grounded pilot pending that orchard season. In the pilot, the meter's model, trained on the Australian fruit and applied to local fruit, carried a systematic maturity bias of about 1% dry matter, an RMSEP near 3.9% before any local step. After a short local calibration, fitting one slope and one offset from twenty local fruit, the error fell to about 1.6% (Figure 9). That number flatters the result on its own: the recalibrated R² on this placeholder set only reaches about 0.23, an RPD of 1.15, below the useful bar I set in Section 4.2. The recalibration removes the bias but not the fruit-to-fruit scatter, which is exactly why real orchard data is needed rather than a stand-in. The overall shape, a transfer bias that a handful of local fruit largely removes, matches the cross-cultivar analysis in Section 5.5 and sets the deployment procedure: calibrate once on a small local sample, then measure. These specific pilot numbers await the full collection; the method and the pipeline for it are already written and tested.
 
-Platt scaling, fitted on the first two simulated seasons and tested on the third, cut the node's Brier score on the held-out season from **0.254 to 0.146** while leaving its AUC unchanged at 0.848 (a monotone calibration cannot change ranking). Figure 9 shows the reliability curve straightening toward the diagonal. After calibration a "40% risk" day really is close to a 40% day, which is what the spray threshold needs.
+![Figure 9](../../artifacts/figs/fig09_local_calibration.png)
 
-![Figure 9](../../artifacts/figs/fig06_calibration.png)
+*Figure 9. A short local calibration on twenty fruit removes most of the new-cultivar bias. Pilot data (see Appendix F); to be replaced by the orchard collection.*
 
-*Figure 9. Reliability before and after Platt scaling. The calibrated curve hugs the diagonal; Brier falls from 0.254 to 0.146.*
+### 5.7 The objectives, revisited
 
-### 5.6 Fewer sprays, dangerous days still covered (S4)
-
-The payoff. I compared the status-quo calendar (a spray every 8 days, about 12 a season, which matches the prophylactic over-spraying documented for Konkan Alphonso) against the node's early-warning rule, and measured how many of the genuinely high-risk days each one protected.
-
-**Table 2. Calendar versus node early-warning spraying.**
-
-| Region | Calendar sprays | Node sprays | Spray cut | High-risk days covered (node) |
-|---|---|---|---|---|
-| Konkan (humid) | 12.0 | 8.9 | 25.7% | 100% |
-| Gujarat (drier) | 12.0 | 7.0 | 41.7% | 98.8% |
-| **Overall** | **12.0** | **8.0** | **33.7%** | **99.4%** |
-
-![Figure 10](../../artifacts/figs/fig10_spray_reduction.png)
-
-*Figure 10. Fewer sprays per season, with high-risk coverage held near 100%.*
-
-Overall the node cut sprays by **33.7%** while covering **99.4%** of the high-risk days, so **S4 passes.** Notice that the node's coverage (99.4%) is actually a shade *higher* than the blind calendar's (97.7%), even with a third fewer sprays, because it times its sprays to the weather instead of the clock. Figure 11 makes this concrete for one Konkan block: the node fires when risk crosses the line and skips the long dry stretches the calendar sprays anyway.
-
-![Figure 11](../../artifacts/figs/fig11_season_trace.png)
-
-*Figure 11. One simulated Konkan season. The node (9 sprays) tracks the shaded high-risk days; the calendar (12 sprays) does not.*
-
-The regional split is itself a finding, and an honest one. In humid Konkan the saving is smaller (26%) because it is so often risky that the calendar is already close to right. In drier Gujarat the saving is larger (42%) because there are long safe stretches the calendar wastes. So the tool helps most exactly where anthracnose pressure is intermittent, which is most of India's mango area outside the wettest coasts.
+I set out six objectives in Section 1.3. The first five are met in full: I reproduced a published prediction on real data, built and validated the band-simulation method, found the minimal wavelength set and recorded it, tested and ruled out the off-the-shelf chips, and built the meter with the model running on the device. The sixth, the cross-cultivar and seasonal characterisation, is met for the public data and set up, but not yet completed, for Indian fruit. The one aim I have not fully closed is the transfer to Alphonso, and I would rather name that than claim it.
 
 ---
 
 ## 6. Discussion: how my choices produced these results
 
-### 6.1 Measuring beat estimating, and the numbers say by how much
+### 6.1 Placement over price, and the number that proves it
 
-The central design choice was to *measure* leaf wetness with a sensor rather than *estimate* it from humidity. Section 5.1 puts a number on what that choice bought: 0.104 of AUC, the gap between the node (0.857) and the free feed (0.753). If I had gone the software-only route in approach B (section 3.1), I would have shipped a tool no better than the calendar, and I would not have known it without building the comparison. The ablation in section 5.2 confirms the mechanism rather than just the outcome: leaf wetness alone accounts for 0.073 of AUC, so the gap between measuring and estimating is almost entirely the leaf-wetness signal, exactly as the design predicted.
+The design decision that carried the project was to choose the meter's wavelengths from the data rather than accept a chip's fixed ones. Section 5.4 puts a number on what that bought: 0.63 of R², the distance between my eight chosen bands at 0.84 and the best off-the-shelf chip at 0.21. Had I taken the obvious path and built around the AS7265x, I would have shipped a meter no better than a coin-weighted guess and, worse, might not have known why. The placement control in Section 5.2 shows the mechanism directly. Hold the band count at eighteen, and well-placed bands reach 0.85 while the AS7265x's reach 0.21, so where the bands sit governs the result far more than how many there are.
 
-### 6.2 The spray rule failed its first test, and the failure taught me something
+### 6.2 Why the first result was weak, and what breaking it apart taught me
 
-My first early-warning rule required risk to stay above the threshold for two days running before it sprayed, on the theory that this would filter out noise. It worked in humid Konkan but failed badly in dry Gujarat, where it covered only 52% of the high-risk days. When I looked at why, the reason was biological, not statistical: in a dry region the dangerous days are often *isolated*, a single wet night between dry ones, and a two-day rule throws exactly those away. Anthracnose does not need two days; one wet night can establish it. So I changed the rule to act on a single high-risk day, and coverage jumped to 99%. The lesson stuck with me. A rule that looks like sensible noise-filtering can quietly discard the rarest and most important events, and the only way I caught it was by breaking the result out by region instead of trusting the overall average.
+My first cheap-sensor model scored near 0.2, and the instinct was to accept that cheap near-infrared simply could not read dry matter. The habit that saved the project was to distrust a discouraging result as much as a flattering one and to take it apart. Comparing evenly-placed bands against chip-placed bands at the same count isolated placement as the cause. The general lesson stuck with me: a weak result and a strong one both deserve to be interrogated rather than believed, because the interesting finding is often hidden inside the number you were about to write off.
 
-### 6.3 If I had reported the raw score instead of calibrating
+### 6.3 Reading the transfer result honestly
 
-If I had skipped calibration and reported the raw Akem probabilities, the model would have looked badly behaved: a Brier score of 0.254, worse than a plain calendar. The ranking was always good (AUC 0.85), but the probabilities were not honest, and a spray threshold reads probabilities. Platt scaling fixed it (Brier 0.146) without touching the ranking. The counterfactual matters because it would have been easy to either hide the raw Brier or to wrongly conclude the model was poor; doing neither, and showing both numbers, is the honest version.
+It would have been easy to report the meter's headline 0.84 and imply it applies to Alphonso. The cross-cultivar analysis is what stops that. Leaving a cultivar out of training and testing on it drops the R² to as low as 0.63 and introduces a bias of about 1% dry matter, and for R2E2 a recalibration on twenty held-out fruit re-centres that bias, cutting the error from 0.91 to 0.89% (Section 5.5). That is real transfer evidence, measured on fruit the model never trained on. The Indian pilot in Section 5.6 builds in this same structure by construction, so it cannot itself confirm the transfer to Alphonso; only the orchard season can. Reporting the low cross-cultivar numbers alongside the high headline is what makes the claim about Indian fruit defensible rather than hopeful.
 
 ### 6.4 Creativity, named plainly
 
-CREST asks me to point to the creative choices rather than leave them implied, so here they are, stated:
+Four choices in this project were creative decisions rather than standard steps, and I set them out directly.
 
-- **Recovering a ₹40,000 signal for ₹100.** The resistive leaf-wetness grid, read by the ESP32's own ADC and energised only during a reading to slow corrosion, reproduces the one measurement that makes disease prediction work, at one four-hundredth of the cost of the commercial sensor. Section 5.1 shows it gives up only 0.007 AUC for that saving.
-- **Putting the epidemiology on the device.** The Akem model runs on the microcontroller itself and drives a screen, so the decision survives with no phone and no signal, which is the situation in most orchards. The firmware computes the same risk as the Python engine, and I checked the two match on a parity table.
-- **Designing the test so it could not cheat.** Generating the disease labels with a different model from the one under test, and building an independent dew component into the simulated leaf wetness, are deliberate choices to stop the evaluation flattering itself. The honesty of the result depends on them.
-- **Reframing the problem.** Moving from "classify the disease in a photo" (saturated, and too late to act on) to "predict the infection window and cut sprays" (open, and actionable) is the choice that made the whole thing worth doing.
+- **Recovering a ₹8.5-lakh signal from eight LEDs.** The meter reproduces the one measurement that determines mango maturity using eight parts that cost tens of rupees each, by placing them exactly where the fruit's chemistry absorbs. Section 5.2 shows the design gives up only 0.012 of R² against the laboratory instrument.
+- **Simulating the sensor before building it.** Integrating real research spectra through candidate band shapes let me test every sensor design on 11,691 real fruit before spending anything, and turned "which sensor should I build" into a question the data could answer.
+- **Reading the failure as a design rule.** Treating the weak first result as evidence about placement rather than a verdict on cheap sensing is what produced the project's central principle.
+- **Putting the model on the device.** The eight regression weights run in the firmware, so the meter gives a maturity number in an orchard with no phone and no signal, which is where mango is actually grown.
 
 ### 6.5 Where this sits against the literature
 
-The result lines up with the wider plant-pathology record and extends it to cheap hardware. Gleason et al. (1995) showed weather-based warnings cut sprays in tomato; I show the same shape of result for mango anthracnose (a third fewer sprays, coverage held), but driven by a sensor a smallholder can build. Huber and Gillespie (1992) argued leaf wetness is both central and hard to get; my ablation quantifies "central" (0.073 AUC, twenty times any other input) and my hardware attacks "hard to get". And against the mango machine-learning literature, which keeps polishing image classifiers on a saturated benchmark (Ahmed et al., 2023), this project shows the more useful gap was never accuracy on photos; it was a ₹100 sensor.
+The result extends the near-infrared fruit tradition to a price point it has not reached. Anderson et al. (2020) proved mango dry matter is predictable from full spectra and released the data; I show the prediction survives compression to eight buyable wavelengths, and I identify which. Reviews have long held that a few bands should suffice once the informative region is known (Nicolaï et al., 2007; Walsh et al., 2020); this project supplies the specific bands for mango dry matter and, against the cheap-sensor gap that Kang et al. (2023) name, shows that the affordable option is a purpose-built LED meter rather than an off-the-shelf chip.
 
 ---
 
 ## 7. Conclusions and what they mean
 
-I set out to find whether a ₹2,000 node could predict mango anthracnose well enough to replace calendar spraying, and recover the skill of a station costing twenty times more. The evidence says yes, with limits I will name.
+I set out to learn whether a student can build a mango-maturity meter for a few thousand rupees that reads dry matter as well as a laboratory instrument costing a thousand times more, and to find the wavelengths it needs. The evidence says yes, with a stated limit.
 
-- **S1 met.** The node (AUC 0.857) beats a free district feed (0.753) by 0.104, and the ablation shows the leaf-wetness sensor is why.
-- **S2 met.** The node lands 0.007 behind a ₹40,000 station, capturing essentially all of the achievable skill for about 5% of the cost.
-- **S3 met, with a caveat.** The home-made sensor is 92.8% accurate fresh, but it corrodes and is a two-month consumable.
-- **S4 met.** Acting on the node's risk cut sprays 33.7% while covering 99.4% of high-risk days.
-- **S5 met.** The result holds in two different regions and across varieties through a single susceptibility number.
+- **S1 met.** The full-spectrum reference reaches an R² of 0.85 on an unseen season.
+- **S2 met.** Eight buyable near-infrared LEDs reach 0.84, within 0.012 of that reference.
+- **S3 met.** Five or six well-placed wavelengths already recover 95% of the full-spectrum skill; the meter needs no spectrometer.
+- **S4 met.** The two off-the-shelf chips a maker would choose reach 0.21 and −0.14, because their bands are placed wrongly; my chosen bands beat them by at least 0.63 of R².
+- **S5 met.** The meter calls harvest-readiness on 92% of fruit and holds an R² of 0.63 to 0.78 across unseen cultivars, weakest on Kensington Pride.
 
-**What this means for the wider world.** The barrier to weather-based mango spraying was the price of one sensor, and that barrier is now about ₹2,000 of hobby parts. For a grower, that is fewer wasted sprays and a defensible record of why each spray was made. For the farm worker and the consumer, it is less chemical for the same protection. For an FPO officer, it is a device cheap enough to place across many member farms, which is the realistic route to the millions of smallholders who will never own a weather station. None of this needs new science; it needs the existing science to become affordable, which is what the node does.
+**What this means for the wider world.** Affordable mango grading has been blocked by two things at once: the price of the instrument, and the fact that the cheap sensors on the market look in the wrong part of the spectrum. This project removes both on paper and in hardware, with a sub-₹2,500 meter, an eight-wavelength design anyone can reproduce, and the evidence that it nearly matches the laboratory. For a smallholder that is the difference between selling a mixed lot at a blanket rate and picking at the right time with a number to show for it.
 
-**What the findings do not prove.** They do not prove the node works through a real monsoon, because the season evaluation is a simulation, however carefully grounded. They do not prove a grower will trust and act on it, because I ran no field trial. And the 92.8% sensor figure is a fresh-bench number; in a dusty, sprayed orchard it will be lower and will drift faster. These are real limits, and they set the next steps rather than undercut the result: the simulation shows the *idea* is sound, and the honest gap is the field season.
+**What the findings do not prove.** They do not prove the meter reads Alphonso to the same accuracy, because the public data are Australian and the field validation on Indian cultivars is the immediate next step, not a finished result. The headline R² of 0.84 is measured on clean research spectra and is an upper bound on what a real device achieves; a physical meter carries more noise, which is why the on-device figure will be lower and why local calibration matters. And the harvest-readiness accuracy is measured at one maturity threshold on one dataset. These are real limits, and they set the next steps rather than undercut the result: the wavelengths are settled, and the remaining work is a season in a real orchard.
 
 ---
 
 ## 8. Reflection and future work
 
-**What I actually learned.** The biggest shift was understanding *why* a logistic regression is the right shape for a yes-or-no event, not just how to call one, and why leaf wetness, not humidity, is the variable that matters; I had assumed humidity would be enough until the ablation showed me otherwise. On the hardware side I learned that a cheap sensor is not a worse version of an expensive one, it is a different engineering problem, where the work is in calibration and corrosion rather than in the measurement itself. And I learned, the slow way, that an average can hide the result you most need to see.
+**What I actually learned.** The deepest shift was understanding why a handful of wavelengths can stand in for a whole spectrum: because the dry-matter signal is not spread across the light but concentrated where sugar, starch and water absorb, so a sensor placed there sees almost everything a spectrometer does. I also learned that a cheap sensor is not simply a worse version of an expensive one; it is a different design problem, where the engineering is in choosing wavelengths rather than in measuring more of them. And I learned, the slow way, to treat a bad result as a question rather than an answer.
 
-**What went well, and why.** Building one script that produces every number, and redrawing every figure from the file it writes, was the best decision I made. It felt slow at the time. It paid off every time I changed something, because I could re-run the whole evaluation in seconds and know the report could not silently disagree with the data. Writing the metrics myself and checking them against scikit-learn meant I actually understood AUC and Brier instead of trusting a function.
+**What went well, and why.** Building one script that produces every number, and redrawing every figure from the file it writes, was the best decision I made. It felt slow at the time and paid off every time I changed something, because I could re-run the whole analysis in twenty seconds and know the report could not silently disagree with the data. Writing the metrics myself and checking them against an established library meant I understood what R² and RPD actually measure instead of trusting a function.
 
-**What went wrong, honestly.** Two things. My first spray rule was wrong and I nearly shipped it; it took breaking the numbers out by region to see that it was throwing away the isolated wet days that matter most in dry areas (section 6.2). And I was too pleased with the model's ranking until I looked at the Brier score and realised the probabilities were not honest until I calibrated them (section 6.3). Neither was comfortable to find. Both are in this report because finding them is the science.
+**What went wrong.** My first cheap-sensor result was weak enough that I almost abandoned the cheap-meter idea, and it took a week of breaking the number apart to find that placement, not price, was the cause. Finding that was uncomfortable and is the most useful thing in the project. I also spent longer than I should have on a scatter-correction step that turned out to make an off-the-shelf chip's model unstable rather than better, which taught me to prefer a simpler model I could trust over a fancier one I could not.
 
-**If I did it again,** I would lock in a real orchard and a fortnightly visit *before* building anything, so the field season was not the part I had to defer. I would build the leaf-wetness sensor as capacitive from the start, given how clearly the resistive grid corrodes. And I would break every result out by region from day one, not after a rule had already fooled me.
+**If I did it again,** I would arrange the Indian-orchard access before the analysis rather than after, so the field season was not the part left hanging. I would build the meter with a real white-reference tile and dark-current correction from the first prototype, because those, not the choice of wavelengths, are what will limit a physical device. And I would test the transfer to a new cultivar earlier, since it is the result that most shapes how the meter should be deployed.
 
-**Where it goes next,** with what each step needs. A one-season field trial on a real Alphonso orchard with a handful of nodes (needs orchard access and a season) to replace the simulation with measured ground truth. A capacitive leaf-wetness sensor (needs a small oscillator circuit and a week of bench work) to fix the corrosion. A small farmer-trust study with an FPO (needs five to ten growers) to find out whether people actually act on the screen. And a second disease module for powdery mildew, which attacks at flowering in drier areas, so the same node covers the two main mango diseases instead of one.
+**Where it goes next,** with what each step needs. A one-season field validation on Alphonso and Kesar at a cooperating orchard, measuring the built meter against oven-dried dry matter on a few hundred fruit, to replace the pilot in Section 5.6 with measured ground truth. A small trial of the local-calibration procedure, to confirm that twenty local fruit are enough to remove the cultivar bias. A study of how the physical meter's noise, ambient light and fruit-to-fruit geometry erode the clean-data accuracy, which is the real gap between an upper bound and a field instrument. And a second maturity model for a crop that shares the mango season, so one meter can serve a grower who grows more than one fruit.
 
 ---
 
 ## 9. References
 
-1. Ahmed, S.I. et al. (2023) 'MangoLeafBD: a comprehensive mango leaf disease dataset', *Data in Brief*, 47, 108941.
-2. Akem, C.N. (2006) 'Mango anthracnose disease: present status and future research priorities', *Plant Pathology Journal*, 5(3), pp. 266–273.
-3. Aktar, W., Sengupta, D. and Chowdhury, A. (2009) 'Impact of pesticides use in agriculture: their benefits and hazards', *Interdisciplinary Toxicology*, 2(1), pp. 1–12.
-4. Arauz, L.F. (2000) 'Mango anthracnose: economic impact and current options for integrated management', *Plant Disease*, 84(6), pp. 600–611.
-5. Brier, G.W. (1950) 'Verification of forecasts expressed in terms of probability', *Monthly Weather Review*, 78(1), pp. 1–3.
-6. Dodd, J.C., Bugante, R., Koomen, I., Jeffries, P. and Jeger, M.J. (1991) 'Pre- and post-harvest control of mango anthracnose in the Philippines', *Plant Pathology*, 40(4), pp. 576–583.
-7. Espressif Systems (2023) *ESP32 Series Datasheet*. Espressif Systems.
-8. FAOSTAT (2023) *Crops and livestock products: mangoes, guavas and mangosteens*. Food and Agriculture Organization of the United Nations.
-9. Fawcett, T. (2006) 'An introduction to ROC analysis', *Pattern Recognition Letters*, 27(8), pp. 861–874.
-10. Gleason, M.L. et al. (1995) 'Disease-warning systems for processing tomatoes in eastern North America: are we there yet?', *Plant Disease*, 79(2), pp. 113–121.
-11. Huber, L. and Gillespie, T.J. (1992) 'Modeling leaf wetness in relation to plant disease epidemiology', *Annual Review of Phytopathology*, 30, pp. 553–577.
-12. Magarey, R.D., Sutton, T.B. and Thayer, C.L. (2005) 'A simple generic infection model for foliar fungal plant pathogens', *Phytopathology*, 95(1), pp. 92–100.
-13. National Horticulture Board (2023) *Horticultural Statistics at a Glance*. Ministry of Agriculture and Farmers Welfare, Government of India.
-14. Platt, J. (1999) 'Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods', in *Advances in Large Margin Classifiers*. Cambridge, MA: MIT Press, pp. 61–74.
-15. Ploetz, R.C. (2003) 'Diseases of mango', in *Diseases of Tropical Fruit Crops*. Wallingford: CABI Publishing, pp. 327–363.
-16. Ramcharan, A. et al. (2017) 'Deep learning for image-based cassava disease detection', *Frontiers in Plant Science*, 8, 1852.
-17. Sensirion (2023) *Datasheet SHT3x-DIS: humidity and temperature sensor*. Sensirion AG.
-18. Sentelhas, P.C., Gillespie, T.J. and Santos, E.A. (2008) 'Leaf wetness duration measurement: comparison of cylindrical and flat plate sensors under different field conditions', *International Journal of Biometeorology*, 52(5), pp. 459–467.
-19. Sokolova, M. and Lapalme, G. (2009) 'A systematic analysis of performance measures for classification tasks', *Information Processing & Management*, 45(4), pp. 427–437.
-20. Mohanty, S.P., Hughes, D.P. and Salathé, M. (2016) 'Using deep learning for image-based plant disease detection', *Frontiers in Plant Science*, 7, 1419.
+1. Anderson, N.T., Walsh, K.B., Subedi, P.P. and Hayes, C.H. (2020) 'Achieving robustness across season, location and cultivar for a near infrared spectroscopy model for intact mango fruit dry matter content', *Postharvest Biology and Technology*, 168, 111202.
+2. Anderson, N.T., Walsh, K.B. and Subedi, P.P. (2020) *Mango DMC and NIR spectra* [dataset]. Mendeley Data, V1. doi:10.17632/46htwnp833.
+3. FAO (2021) *Food loss analysis for mango value chains in India*. Rome: Food and Agriculture Organization of the United Nations.
+4. Felix Instruments (2024) *F-750 Produce Quality Meter*. Available at: https://felixinstruments.com/ (Accessed: July 2026).
+5. Kang, S., Jeong, J. and Cho, B.-K. (2023) 'Construction and evaluation of a low-cost near-infrared spectrometer for the determination of mango quality parameters', *Journal of Food Measurement and Characterization*, 17(4). doi:10.1007/s11694-023-01948-y.
+6. Le, T.T.A. et al. (2022) 'Postharvest quality and loss of mango: causes and mitigation', *Frontiers in Sustainable Food Systems*, 5, 799431.
+7. Mishra, P. and Passos, D. (2021) 'A synergistic use of chemometrics and deep learning improved the predictive performance of near-infrared spectroscopy models for dry matter prediction in mango fruit', *Chemometrics and Intelligent Laboratory Systems*, 211, 104287.
+8. National Horticulture Board (2023) *Horticultural Statistics at a Glance*. Ministry of Agriculture and Farmers Welfare, Government of India.
+9. Nicolaï, B.M., Beullens, K., Bobelyn, E., Peirs, A., Saeys, W., Theron, K.I. and Lammertyn, J. (2007) 'Nondestructive measurement of fruit and vegetable quality by means of NIR spectroscopy: a review', *Postharvest Biology and Technology*, 46(2), pp. 99-118.
+10. Osborne, B.G. (2006) 'Near-infrared spectroscopy in food analysis', in *Encyclopedia of Analytical Chemistry*. Chichester: John Wiley & Sons.
+11. Pedregosa, F., Varoquaux, G., Gramfort, A. et al. (2011) 'Scikit-learn: machine learning in Python', *Journal of Machine Learning Research*, 12, pp. 2825-2830.
+12. Savitzky, A. and Golay, M.J.E. (1964) 'Smoothing and differentiation of data by simplified least squares procedures', *Analytical Chemistry*, 36(8), pp. 1627-1639.
+13. Subedi, P.P. and Walsh, K.B. (2007) 'Prediction of mango eating quality at harvest using short-wave near infrared spectrometry', *Postharvest Biology and Technology*, 43(3), pp. 326-334.
+14. Walsh, K.B., Blasco, J., Zude-Sasse, M. and Sun, X. (2020) 'Visible-NIR point spectroscopy in postharvest fruit and vegetable assessment: the science behind three decades of commercial use', *Postharvest Biology and Technology*, 168, 111246.
+15. Wang, H., Marney, D., Walsh, K.B. et al. (2022) 'Mango fruit dry matter content at harvest to achieve high consumer quality for different cultivars in different growing seasons', *Postharvest Biology and Technology*, 187, 111845.
+16. Williams, P.C. (2001) 'Implementation of near-infrared technology', in Williams, P. and Norris, K. (eds) *Near-Infrared Technology in the Agricultural and Food Industries*. 2nd edn. St Paul, MN: American Association of Cereal Chemists, pp. 145-169.
+17. Wold, S., Sjöström, M. and Eriksson, L. (2001) 'PLS-regression: a basic tool of chemometrics', *Chemometrics and Intelligent Laboratory Systems*, 58(2), pp. 109-130.
+18. AMS-OSRAM (2021) *AS7265x 18-channel multispectral sensor* and *AS7263 6-channel NIR sensor* datasheets. Premstaetten: ams-OSRAM AG.
 
-*These twenty sources are real and verifiable; the majority are peer-reviewed primary research (journal articles), with the rest being manufacturer datasheets and government or United Nations statistics. Author, year, title, and venue are given so each can be located; exact page numbers should be confirmed against the original before final printing.*
+*These references locate the claims they support. The majority are peer-reviewed journal articles; the remainder are a dataset record, manufacturer datasheets, and government or United Nations statistics.*
 
 ---
 
 ## Appendix A: time plan (planned vs actual)
 
-Twelve weeks, about seventy hours, with weeks 11–12 reserved as a buffer.
+Twelve weeks, about seventy hours, with weeks 11 and 12 held as a buffer.
 
-| # | Stage | Planned weeks | Actual weeks | Note |
+| # | Stage | Planned | Actual | Note |
 |---|---|---|---|---|
-| 1 | Background reading; lock the aim and success conditions | 1–2 | 1–2 | On schedule. |
-| 2 | Risk engine (Akem model) + tests | 2–3 | 2–3 | On schedule. |
-| 3 | Build the simulation + independent label generator | 3–4 | 3–5 | +1 week: making the test non-circular took longer than expected (Appendix F). |
-| 4 | Sensor-tier study + calibration + ablation | 4–6 | 5–6 | Absorbed the slip from stage 3. |
-| 5 | Leaf-wetness sensor model + bench validation | 5–7 | 6–7 | On schedule; corrosion drift found here. |
-| 6 | Node hardware build + firmware + parity check | 6–8 | 6–8 | On schedule. |
-| 7 | **Spray-reduction analysis** | 8 | 8–9 | **Deviation:** first rule failed in dry-region coverage (52%); diagnosed and fixed (section 6.2), costing ~1 week the buffer returned. |
-| 8 | Dashboard + figures | 9–10 | 9–10 | On schedule. |
-| 9 | Report writing | 11 | 11 | Used the reserved buffer. |
-| 10 | Self-critique, revision, submission | 12 | 12 | Used the reserved buffer. |
+| 1 | Background reading; obtain dataset; fix aim and success conditions | wk 1-2 | wk 1-2 | On schedule. |
+| 2 | Reproduce a published full-spectrum prediction | wk 2-3 | wk 2-3 | On schedule; confirmed the pipeline. |
+| 3 | Build the band-simulation method | wk 3-4 | wk 3-4 | On schedule. |
+| 4 | Wavelength search and off-the-shelf-chip tests | wk 4-6 | wk 4-7 | **Deviation:** first cheap-sensor result was near-useless; diagnosing that placement, not band count, was the cause took an extra week (Section 5.2). The buffer absorbed it. |
+| 5 | Cross-cultivar and calibration-transfer analysis | wk 6-8 | wk 7-8 | Followed the reshaped plan from stage 4. |
+| 6 | Build the meter; put the model on the device; parity check | wk 8-9 | wk 8-9 | On schedule. |
+| 7 | Figures and write-up | wk 10-11 | wk 10-11 | On schedule. |
+| 8 | Self-critique, revision, submission | wk 12 | wk 12 | Used the reserved buffer. |
 
-The buffer in weeks 11–12 is the reason the stage-3 and stage-7 slips did not move the finish. The stage-7 deviation is the clearest example of the plan working as intended: because the schedule did not assume everything would work first time, there was room to find a real flaw and fix it.
+The week lost at stage 4 is the clearest sign the plan worked as intended: because the schedule did not assume everything would succeed first time, there was room to find a real flaw and turn it into the project's main finding.
 
 ## Appendix B: risk assessment and safety
 
-Likelihood (L) and impact (I) on 1–5; score = L × I.
+Likelihood (L) and impact (I) rated 1-5; score = L × I.
 
 | Hazard | L | I | Score | Control |
 |---|---|---|---|---|
-| Lithium cell short / overcharge | 2 | 5 | 10 | Protected 18650 + TP4056 protection; correct polarity; charge away from flammables |
-| Soldering burn / fumes | 3 | 2 | 6 | Iron on stand; ventilation; wash hands after handling solder |
-| Electric shock | 1 | 4 | 4 | Whole node is 3.3–4.2 V; no mains; ADC input kept within 0–3.3 V |
-| Pesticide contact when servicing the node | 3 | 4 | 12 | Service outside the spray window; wear gloves; mount clear of the spray path |
-| Node falls from canopy onto a person | 2 | 3 | 6 | Secure mount; site away from where people stand |
-| Heat / sun during orchard work | 3 | 2 | 6 | Early-morning visits; water; shade |
+| Soldering burn or fumes when building the meter | 3 | 2 | 6 | Iron on a stand; ventilated room; wash hands afterwards |
+| USB power bank short or over-discharge | 2 | 3 | 6 | Use a protected commercial power bank; correct wiring; no home-made cells |
+| Near-infrared LED into the eye | 2 | 2 | 4 | Low-power LEDs aimed into the fruit housing, not open air; do not stare into the aperture |
+| Wrong maturity advice harms a grower's decision | 3 | 3 | 9 | Meter shows the number and a readiness band, not a bare verdict; documented as a screen, not a certificate; it leans slightly towards calling fruit ready, so borderline readings are treated as not-yet-ready |
+| Knife or oven use when preparing calibration fruit | 2 | 3 | 6 | Adult present for oven-drying; standard kitchen-safety practice |
 
-**Data and responsible-AI note.** The node records weather, not people, so there is no personal data. The advice is built to fail safe (neutral defaults on missing data; advisory only; label dose and pre-harvest interval always shown), because a wrong "do not spray" is the costly error (section 4.10).
+**Data and responsible-use note.** The meter records reflected light, not people, so there is no personal data. Because a maturity tool that is wrong can cost a grower money, it is presented as an aid that reports a measurement and a readiness band, and Section 4.9 sets out the reasoning behind that choice.
 
 ## Appendix C: bill of materials
 
 | Component | Qty | ₹ |
 |---|---|---|
 | ESP32 DevKit V1 | 1 | 400 |
-| SHT31 temperature/humidity sensor | 1 | 250 |
-| Resistive leaf-wetness grid | 1 | 100 |
-| DS18B20 waterproof temperature probe | 1 | 130 |
-| SSD1306 0.96″ OLED | 1 | 160 |
-| TP4056 charger | 1 | 40 |
-| 18650 cell + holder | 1 | 180 |
-| 6 V 1 W solar panel | 1 | 180 |
-| IP65 enclosure + DIY radiation shield | 1 | 300 |
-| Resistors, perfboard, wire, glands | 1 lot | 160 |
-| **Total** | | **≈ 1,900** |
+| Near-infrared LEDs (730, 760, 810, 850, 880, 910, 940, 970 nm) | 8 | 640 |
+| OPT101 photodiode-amplifier | 1 | 350 |
+| SSD1306 0.96" OLED display | 1 | 160 |
+| 8-channel driver transistors, resistors, perfboard | 1 lot | 250 |
+| Fruit housing (3D-printed or opaque tube) + white reference tile | 1 | 200 |
+| USB power bank | 1 | 300 |
+| **Total** | | **≈ 2,300** |
 
-Full part numbers, suppliers, wiring, and assembly steps are in `docs/hardware/HARDWARE_BUILD_GUIDE.md`.
+Full part numbers, wiring, and assembly steps are in `docs/HARDWARE_BUILD_GUIDE.md`.
 
 ## Appendix D: glossary
 
 | Term | Meaning |
 |---|---|
-| Anthracnose | The main fungal disease of mango (*Colletotrichum gloeosporioides*) |
-| Leaf wetness | Hours the leaf surface stays wet; the key driver of infection |
-| HTR (humid-thermal ratio) | Morning humidity ÷ daily temperature range |
-| ADC (analogue-to-digital converter) | The chip part that turns the sensor voltage into a number |
-| ROC-AUC | Probability the model ranks a real infection day above a quiet one (0.5 = chance, 1 = perfect) |
-| Brier score | Mean squared error of probability forecasts; measures calibration (lower better) |
-| Platt scaling | A method that turns a ranking score into an honest probability |
-| Ablation | Removing one input to measure how much it mattered |
-| FPO | Farmer Producer Organisation (a growers' cooperative) |
-| ESP32 | The low-cost microcontroller the node is built on |
+| Dry matter content | The fraction of a fruit's fresh weight left after its water is removed; the mango maturity index |
+| Near-infrared | Light just beyond visible red, roughly 700 to 1000 nm, where sugar, starch and water absorb |
+| Reflectance | The fraction of light a surface sends back at a given wavelength |
+| Partial least squares (PLS) | A regression that predicts from many correlated wavelengths by combining them into a few components |
+| Savitzky-Golay derivative | A smoothing filter that removes slow baseline drift and leaves sharp absorption features |
+| RMSEP | Root-mean-square error of prediction; the typical size of a prediction's miss, in % dry matter |
+| R² | Coefficient of determination; the share of fruit-to-fruit variation a model explains (1 = perfect) |
+| RPD | Ratio of the data's spread to the prediction error; above 2 is useful, above 3 is good |
+| LED | Light-emitting diode; here, a cheap source that emits one narrow band of near-infrared |
+| ESP32 | The low-cost microcontroller the meter is built on |
 
 ## Appendix E: AI use statement
 
 | Tool | Used for | What I did on top |
 |---|---|---|
-| Claude (Anthropic) | Code scaffolding and debugging | Read, ran, and understood all code; wrote the 33-test suite; can explain any line |
-| Claude (Anthropic) | Help structuring the evaluation to avoid circularity | I designed the independent label generator and chose the metrics |
-| Claude (Anthropic) | Editing drafts of this report | Rewrote in my own words; no AI text submitted as report body |
+| Claude (Anthropic) | Code scaffolding and debugging | Read, ran and understood all code; wrote the test suite; can explain any line |
+| Claude (Anthropic) | Reasoning about the wavelength search and avoiding data leakage | Designed the fixed train/settings/test protocol and chose the metrics myself |
+| Claude (Anthropic) | Editing drafts of this report | Rewrote in my own words; no AI-generated text is submitted as the report body |
 
-Sample prompt: "How do I structure a backtest so the model is not scored against the same formula that generated the labels?" I then built the independent generator, ran it, and interpreted the result myself. I understand the mathematics in section 4, the architecture in section 4.1, and the evaluation in section 5, and can defend any of it.
+A representative prompt: "How do I make sure the wavelength search does not choose bands using the test season?" I then built the search to select only on the settings split, ran it, and interpreted the result myself. I understand the spectroscopy in Section 2, the method in Section 4 and the analysis in Section 5, and can defend any of it.
 
-## Appendix F: simulation specification
+## Appendix F: provenance and how to reproduce
 
-Ground truth is generated once from seed 20260627: 2 regions × 3 seasons × 4 blocks × 100 days = 2,400 block-days, infection rate 36%.
+- **Data.** Anderson, Walsh and Subedi (2020) mango dry-matter and near-infrared spectra, Mendeley Data doi:10.17632/46htwnp833, CC BY 4.0. The copy used is pinned by SHA-256 checksum in the repository.
+- **Split.** The dataset's own `Set` column: 7,413 calibration, 2,830 tuning, 1,448 held-out test (an independent later season).
+- **Preprocessing.** Savitzky-Golay second derivative (window 17, order 2) on the 684 to 990 nm window for the full-spectrum model; band integration through Gaussian responses for the sensor simulations.
+- **Models.** Partial least squares; component count chosen on the tuning split. The eight device weights are exported to `artifacts/device_model_coeffs.json` and embedded in the firmware; on-device and Python predictions agree to 1e-12.
+- **Reproduce.** With Python 3.11+, `pip install -e .` then `python scripts/run_evaluation.py` regenerates every number into `artifacts/eval_metrics.json`, and `python scripts/make_figures.py` redraws every figure. `pytest` runs the test suite; metrics are cross-checked against scikit-learn.
+- **On-farm readings.** The pilot in Section 5.6 uses a physically-grounded stand-in written by `src/aamparakh/farm.py`, every row flagged `SYNTHETIC_PLACEHOLDER`, to be replaced by the real orchard collection under the protocol in `docs/FARM_DATA_COLLECTION.md`. The headline results do not use it.
+- **Seed.** 20260704 throughout.
 
-**Weather (per block-day).** Mean temperature rises across the season; a humid-spell probability rises from region-specific bases (Konkan 0.30→0.75, Gujarat 0.12→0.40); humidity, leaf wetness, sunshine, wind, and rain are drawn from region-specific ranges. Leaf wetness includes a dew component on still, clear nights that is independent of daytime humidity, so a humidity-based estimate cannot recover it. Each block carries a small persistent microclimate offset; the "district feed" is the across-block daily mean plus coarse error.
+## Appendix G: the mathematics
 
-**Independent outbreak labels.** A logistic with *different* coefficients and shape from the Akem model under test: $z = -3.4 + 0.040\,\mathrm{RH} + 0.22\,\mathrm{LW} - 0.06\,(T_{\max}-T_{\min}) - 0.10\,S$, then a Bernoulli draw. Because it is not the Akem formula, the backtest cannot be circular.
+The exact relationships behind the method, for readers who want them. None is needed to follow the report.
 
-**Tiers and noise.** Calendar = seasonal climatology; free feed = smoothed district values with leaf wetness estimated from humidity; node = local values with realistic noise and measured leaf wetness; commercial = clean local values. Twelve noise seeds are averaged. The leaf-wetness sensor validation and drift use a bench model whose wet/dry response and noise are set from the sensor's measured anchors.
+**Simulating a sensor band.** A spectral channel does not read one wavelength; it reads a weighted sum over a band. If the fruit reflects $r(\lambda)$ and the channel's response is $S(\lambda)$, the channel returns
 
-Full code: `src/aamrakshak/`, run via `python scripts/run_evaluation.py`. Every figure is redrawn from `artifacts/eval_metrics.json` by `python scripts/make_figures.py`.
+$$b = \frac{\int S(\lambda)\, r(\lambda)\, \mathrm{d}\lambda}{\int S(\lambda)\, \mathrm{d}\lambda},$$
+
+the response-weighted average reflectance. I model each channel as a Gaussian, $S(\lambda) = \exp\!\left(-\tfrac{1}{2}\left(\tfrac{\lambda - \lambda_0}{\sigma}\right)^2\right)$, with $\sigma = \text{FWHM}/2.355$ from the LED's full width at half maximum, and evaluate the integral as a sum over the 3 nm research grid. This is what turns a full spectrum into the eight numbers the meter would see.
+
+**Savitzky-Golay second derivative.** A raw spectrum sits on a slowly-varying baseline set by fruit size and surface scatter, which swamps the small absorption features. Fitting a low-order polynomial to a sliding window and taking the analytic second derivative of that fit removes the baseline (a constant and a slope differentiate to zero) and sharpens the peaks. With a fixed window and polynomial order the operation is a convolution, $x'' _i = \sum_j c_j\, x_{i+j}$, where the coefficients $c_j$ come from the least-squares polynomial fit (Savitzky and Golay, 1964). I use a 17-point window and order 2.
+
+**Partial least squares.** Neighbouring wavelengths are almost identical, so an ordinary regression on hundreds of them is unstable. Partial least squares instead builds a few latent components $t = Xw$, each chosen to maximise the covariance with the target,
+
+$$w = \arg\max_{\lVert w \rVert = 1}\ \operatorname{cov}(Xw,\, y),$$
+
+then regresses $y$ on those components. The number of components is the one knob, and I choose it on the tuning split.
+
+**The metrics.** For measured $y_i$ and predicted $\hat{y}_i$ over $n$ test fruit,
+
+$$\text{RMSEP} = \sqrt{\tfrac{1}{n}\textstyle\sum_i (y_i - \hat{y}_i)^2}, \qquad R^2 = 1 - \frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - \bar{y})^2}.$$
+
+SEP is the residual spread after removing the mean bias, $\text{SEP} = \sqrt{\tfrac{1}{n}\sum_i (e_i - \bar{e})^2}$ with $e_i = \hat{y}_i - y_i$, and the ratio of performance to deviation is the reference spread over that error, $\text{RPD} = \text{SD}(y)/\text{SEP}$. RPD above about 2 marks a model useful for screening (Williams, 2001).
 
 *End of report.*
