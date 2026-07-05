@@ -108,7 +108,7 @@ I chose the discrete-LED route because it is the only one that lets the waveleng
 
 The project is built on the mango dry-matter dataset of Anderson, Walsh and Subedi (2020), released on Mendeley Data under a Creative Commons licence that permits research use. It holds 11,691 near-infrared scans of intact mango, each paired with a laboratory dry-matter value obtained by oven-drying, across ten cultivars and four seasons. The dry-matter values run from 9.5% to 24.6%, averaging 16.3%, and their spread is shown in Figure 1. The authors ship a fixed three-way split, which I keep so my numbers sit next to theirs: 7,413 fruit to calibrate a model, 2,830 to choose its settings, and 1,448 fruit from a later season held back as an untouched test set. Reporting on a whole season the model never saw is a strict test, because it forces the model to generalise across the year-to-year changes that defeat weak calibrations.
 
-![Figure 1](../../artifacts/figs/fig01_dm_distribution.png)
+![Figure 1](artifacts/figs/fig01_dm_distribution.png)
 
 *Figure 1. Dry matter across all 11,691 fruit, ten cultivars and four seasons. The dashed line is the 15% harvest-readiness threshold used later.*
 
@@ -167,7 +167,7 @@ Every number below comes from `scripts/run_evaluation.py` at seed 20260704, on t
 
 A partial least squares model on the full research spectrum, 103 wavelengths across the 684 to 990 nanometre window, predicted dry matter on the unseen season with an RMSEP of 1.03% dry matter, an R² of 0.85 and an RPD of 2.6 (Figure 2). Reproducing something close to the published error of about 0.84% (Anderson et al., 2020) on the exact held-out season confirms the pipeline is sound; the gap from their best figure reflects their use of local and non-linear refinements I did not copy, since my aim was a fair reference for the cheap meter, not the last decimal of accuracy. **S1 is met.** This is the bar the rest of the project works against.
 
-![Figure 2](../../artifacts/figs/fig02_full_spectrum_scatter.png)
+![Figure 2](artifacts/figs/fig02_full_spectrum_scatter.png)
 
 *Figure 2. Full research spectrum: predicted against measured dry matter on the held-out 2018 season. The line is perfect agreement.*
 
@@ -175,7 +175,7 @@ A partial least squares model on the full research spectrum, 103 wavelengths acr
 
 The central result is Figure 3 and Figure 5. My meter's eight near-infrared bands, modelled the same way, predicted dry matter on the unseen season with an RMSEP of 1.07% and an R² of 0.84, against the full spectrum's 0.85. The gap is 0.012 of R². Eight ordinary LEDs recovered almost all of the skill of a ₹8.5-lakh instrument. **S2 is met.**
 
-![Figure 3](../../artifacts/figs/fig03_device_scatter.png)
+![Figure 3](artifacts/figs/fig03_device_scatter.png)
 
 *Figure 3. The eight-LED meter: predicted against measured dry matter on the same held-out season. Compare with Figure 2.*
 
@@ -185,11 +185,11 @@ That clean sentence hides the hardest week of the project. My first attempt at a
 
 Figure 4 shows the accuracy as wavelengths are added one at a time, best first. The curve climbs steeply and then flattens. Five well-placed LEDs already reach 95% of the full-spectrum R², and six reach an R² of 0.82. **S3 is met.** The order in which the search picked the bands follows the chemistry. It took 910, then 880, then 940 nanometres before any other, the exact region where the carbon-hydrogen bonds of sugars and starch and the shoulder of the water band absorb (Figure 6). One caution about that order: it reflects marginal gain on the tuning split, not standalone power. The first two bands alone predict worse than the average fruit on the test season, and it is 810 nanometres, added fourth, that produces the largest single jump in accuracy (Figure 4). The bands earn their accuracy together, not apart. The meter carries eight LEDs rather than six only to hold a small margin for the noise of real hardware.
 
-![Figure 4](../../artifacts/figs/fig04_band_count_curve.png)
+![Figure 4](artifacts/figs/fig04_band_count_curve.png)
 
 *Figure 4. Accuracy against number of LEDs, added best-first. Five well-placed bands reach 95% of the full spectrum (dotted line).*
 
-![Figure 6](../../artifacts/figs/fig06_selected_bands.png)
+![Figure 6](artifacts/figs/fig06_selected_bands.png)
 
 *Figure 6. The mean spectrum with the selected wavelengths marked. Green are the five that matter most; all sit in the 800 to 970 nm carbohydrate and water region.*
 
@@ -197,7 +197,7 @@ Figure 4 shows the accuracy as wavelengths are added one at a time, best first. 
 
 Given the same fruit and the same model, the eighteen-channel AS7265x reached an R² of only 0.21, and the six-channel AS7263 reached −0.14, worse than guessing the average fruit (Figure 5). The AS7265x fails because eleven of its eighteen channels sit in the visible, leaving too few in the near-infrared, and the AS7263 fails because its bands stop at 860 nanometres and miss the 880 to 970 region the search prized most. My purpose-chosen bands beat the better of the two by 0.63 of R². **S4 is met.** Anyone building on this work should know that the cheap chip they would reach for first will not do the job, and that the only fix is to choose the wavelengths themselves.
 
-![Figure 5](../../artifacts/figs/fig05_tier_comparison.png)
+![Figure 5](artifacts/figs/fig05_tier_comparison.png)
 
 *Figure 5. Accuracy on the held-out season for the full lab spectrum, the eight-LED meter, and the two off-the-shelf chips modelled identically. The right eight bands match the lab; the chips do not.*
 
@@ -205,11 +205,11 @@ Given the same fruit and the same model, the eighteen-channel AS7265x reached an
 
 Trained without each cultivar in turn and tested on the one it had never seen, the meter's model held an R² between 0.63 and 0.78 across the four main cultivars, with RPD values from 2.2 to 2.5 (Figure 7). The weakest was Kensington Pride, at 0.63, where the model read the new cultivar with a systematic bias of about 1% dry matter. On harvest-readiness, the actionable output, the meter called the 15% dry-matter line correctly on 92% of the test-season fruit, against a base rate of 73% for a meter that simply called everything ready (Figure 8). **S5 is met.** Reporting the per-cultivar spread rather than the pooled figure is deliberate: it shows the meter is not a single-cultivar special case, and it names Kensington Pride as the case a deployment would watch.
 
-![Figure 7](../../artifacts/figs/fig07_cross_cultivar.png)
+![Figure 7](artifacts/figs/fig07_cross_cultivar.png)
 
 *Figure 7. Trained without each cultivar and tested on it. The dashed line is the all-cultivar meter; Kensington Pride is the hardest transfer.*
 
-![Figure 8](../../artifacts/figs/fig08_harvest_confusion.png)
+![Figure 8](artifacts/figs/fig08_harvest_confusion.png)
 
 *Figure 8. Harvest-readiness calls at the 15% threshold, eight-LED meter, held-out season (n = 1,448).*
 
@@ -217,7 +217,7 @@ Trained without each cultivar in turn and tested on the one it had never seen, t
 
 The transfer to Alphonso and Kesar is the part public Australian data cannot settle, so it is the part I am building a field validation around (Appendix E), and the readings here are an initial, physically-grounded pilot pending that orchard season. In the pilot, the meter's model, trained on the Australian fruit and applied to local fruit, carried a systematic maturity bias of about 1% dry matter, an RMSEP near 3.9% before any local step. After a short local calibration, fitting one slope and one offset from twenty local fruit, the error fell to about 1.6% (Figure 9). That number flatters the result on its own: the recalibrated R² on this placeholder set only reaches about 0.23, an RPD of 1.15, below the useful bar I set in Section 4.2. The recalibration removes the bias but not the fruit-to-fruit scatter, which is exactly why real orchard data is needed rather than a stand-in. The overall shape, a transfer bias that a handful of local fruit largely removes, matches the cross-cultivar analysis in Section 5.5 and sets the deployment procedure: calibrate once on a small local sample, then measure. These specific pilot numbers await the full collection; the method and the pipeline for it are already written and tested.
 
-![Figure 9](../../artifacts/figs/fig09_local_calibration.png)
+![Figure 9](artifacts/figs/fig09_local_calibration.png)
 
 *Figure 9. A short local calibration on twenty fruit removes most of the new-cultivar bias. Pilot data (see Appendix F); to be replaced by the orchard collection.*
 
@@ -355,7 +355,7 @@ Likelihood (L) and impact (I) rated 1-5; score = L × I.
 | USB power bank | 1 | 300 |
 | **Total** | | **≈ 2,300** |
 
-Full part numbers, wiring, and assembly steps are in `docs/HARDWARE_BUILD_GUIDE.md`.
+Full part numbers, wiring, and assembly steps are in `HARDWARE_BUILD_GUIDE.md`.
 
 ## Appendix D: glossary
 
@@ -389,7 +389,7 @@ A representative prompt: "How do I make sure the wavelength search does not choo
 - **Preprocessing.** Savitzky-Golay second derivative (window 17, order 2) on the 684 to 990 nm window for the full-spectrum model; band integration through Gaussian responses for the sensor simulations.
 - **Models.** Partial least squares; component count chosen on the tuning split. The eight device weights are exported to `artifacts/device_model_coeffs.json` and embedded in the firmware; on-device and Python predictions agree to 1e-12.
 - **Reproduce.** With Python 3.11+, `pip install -e .` then `python scripts/run_evaluation.py` regenerates every number into `artifacts/eval_metrics.json`, and `python scripts/make_figures.py` redraws every figure. `pytest` runs the test suite; metrics are cross-checked against scikit-learn.
-- **On-farm readings.** The pilot in Section 5.6 uses a physically-grounded stand-in written by `src/aamparakh/farm.py`, every row flagged `SYNTHETIC_PLACEHOLDER`, to be replaced by the real orchard collection under the protocol in `docs/FARM_DATA_COLLECTION.md`. The headline results do not use it.
+- **On-farm readings.** The pilot in Section 5.6 uses a physically-grounded stand-in written by `src/aamparakh/farm.py`, every row flagged `SYNTHETIC_PLACEHOLDER`, to be replaced by the real orchard collection under the protocol in `FARM_DATA_COLLECTION.md`. The headline results do not use it.
 - **Seed.** 20260704 throughout.
 
 ## Appendix G: the mathematics

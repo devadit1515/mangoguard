@@ -66,9 +66,9 @@ promises.
 
 ## 7. Deliverables
 
-- Report: `docs/report/CREST_REPORT.md` (+ exported `.docx` / PDF).
-- Student Profile form: `docs/report/STUDENT_PROFILE.md`.
-- Logbook: `docs/report/LOGBOOK.md`.
-- Build guide: `docs/HARDWARE_BUILD_GUIDE.md`; firmware: `firmware/`.
-- Field-collection protocol: `docs/FARM_DATA_COLLECTION.md`.
+- Report: `CREST_REPORT.md` (+ exported `.docx` / PDF).
+- Student Profile form: `STUDENT_PROFILE.md`.
+- Logbook: `LOGBOOK.md`.
+- Build guide: `HARDWARE_BUILD_GUIDE.md`; firmware: `firmware/`.
+- Field-collection protocol: `FARM_DATA_COLLECTION.md`.
 - Reproducible code and pinned data: `src/`, `scripts/`, `tests/`, `data/raw/`.

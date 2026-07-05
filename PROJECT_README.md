@@ -10,7 +10,7 @@ scripts/            run_evaluation.py -> artifacts/eval_metrics.json ; make_figu
 tests/              pytest suite; metrics cross-checked against scikit-learn
 firmware/           ESP32 sketch for the meter + firmware README
 data/raw/           the public mango NIR dataset (CC BY 4.0)
-data/farm/          on-orchard readings (placeholder until collected; see docs/FARM_DATA_COLLECTION.md)
+data/farm/          on-orchard readings (placeholder until collected; see FARM_DATA_COLLECTION.md)
 docs/               report, build guide, farm collection guide
 artifacts/          eval_metrics.json, figures, exported device model weights
 ```
@@ -32,4 +32,4 @@ Anderson, Walsh and Subedi (2020), *Mango DMC and NIR spectra*, Mendeley Data, d
 
 ## Headline result
 
-Eight near-infrared LEDs at 730 to 970 nm predict dry matter on an unseen season at R² 0.84, against 0.85 for the full 103-wavelength research spectrum, while the off-the-shelf AS7265x and AS7263 chips reach only 0.21 and −0.14 because their bands are placed wrongly. Full write-up in `docs/report/CREST_REPORT.md`.
+Eight near-infrared LEDs at 730 to 970 nm predict dry matter on an unseen season at R² 0.84, against 0.85 for the full 103-wavelength research spectrum, while the off-the-shelf AS7265x and AS7263 chips reach only 0.21 and −0.14 because their bands are placed wrongly. Full write-up in `CREST_REPORT.md`.

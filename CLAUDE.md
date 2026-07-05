@@ -65,14 +65,13 @@ while off-the-shelf multispectral chips fail because their bands sit mostly in t
 - `src/aamparakh/` — `data` (load/split/picks), `sensors` (band simulation + `DEVICE_BANDS`, AS7265x/AS7263), `models` (FullSpectrumModel, BandModel, greedy_band_selection, linear_recalibration), `evaluate` (RMSEP/R²/SEP/RPD), `farm` (placeholder + ingestion, schema-guarded).
 - `scripts/run_evaluation.py` → `artifacts/eval_metrics.json` (seed 20260704, ~20s); `scripts/make_figures.py` → `artifacts/figs/` (9 figures); `scripts/fetch_data.py` (downloads + SHA-256-verifies the dataset); `artifacts/device_model_coeffs.json` (8 firmware weights).
 - `tests/test_aamparakh.py` — 10 passing, metrics cross-checked vs scikit-learn. `firmware/aamparakh_node/aamparakh_node.ino` — ESP32 sketch, on-device parity.
-- `docs/report/` — `CREST_REPORT.md` (+ .docx; 9 figs; §Appendix G = the maths), `STUDENT_PROFILE.md` (+ .docx), `LOGBOOK.md`, `VERIFICATION.md`.
-- `docs/` — `HARDWARE_BUILD_GUIDE.md`, `FARM_DATA_COLLECTION.md` (**the student's task**), `PROJECT_README.md`.
+- **Deliverables live at repo root** (flattened 2026-07-05 so they sit beside `README.md`, not buried): `CREST_REPORT.md` (+ .docx; 9 figs; §Appendix G = the maths), `STUDENT_PROFILE.md` (+ .docx), `LOGBOOK.md`, `VERIFICATION.md`, `HARDWARE_BUILD_GUIDE.md`, `FARM_DATA_COLLECTION.md` (**the student's task**), `PROJECT_README.md`. The `docs/` folder is gone. Report figures still load from `artifacts/figs/` (paths in the .md are now root-relative).
 - `data/raw/` — **git-ignored**; fetch via `python scripts/fetch_data.py` (SHA-256 `20330fdd...b25c5`). `data/farm/` — placeholder CSV until collected.
 
 ## Environment / reproduce
 - `.venv` is git-ignored and can be deleted; recreate: `python -m venv .venv` then `pip install -e ".[dev,viz]"` (need numpy, pandas, scipy, scikit-learn, matplotlib, pytest, ruff; pre-commit for the hook).
 - Reproduce: `python scripts/fetch_data.py` → `python scripts/run_evaluation.py` → `python scripts/make_figures.py`; `pytest`; `ruff check`.
-- Build docx: `pandoc docs/report/CREST_REPORT.md -o docs/report/CREST_REPORT.docx -f markdown-implicit_figures --resource-path=docs/report --toc --toc-depth=2` (pandoc 3.9 present; renders the LaTeX math to native Word equations).
+- Build docx: `pandoc CREST_REPORT.md -o CREST_REPORT.docx -f markdown-implicit_figures --resource-path=. --toc --toc-depth=2` (run from repo root; pandoc 3.9 present; renders the LaTeX math to native Word equations).
 - Pre-commit hook: `end-of-file-fixer` may fix JSON on first attempt and abort; re-`git add -A` and re-commit (2nd passes). Large-file limit 2 MB (docx 990 KB, figures smaller, dataset ignored).
 
 ## Quality gates (done)
@@ -81,8 +80,8 @@ while off-the-shelf multispectral chips fail because their bands sit mostly in t
 
 ## Build status
 **Complete and pushed** (commit `1a66c53` on `main`). Everything above exists and is green. The only
-work left is the student's: **build the prototype** (`docs/HARDWARE_BUILD_GUIDE.md`) and **collect
-~40–100 real Alphonso/Kesar readings** (`docs/FARM_DATA_COLLECTION.md`), drop the CSV in, re-run the
+work left is the student's: **build the prototype** (`HARDWARE_BUILD_GUIDE.md`) and **collect
+~40–100 real Alphonso/Kesar readings** (`FARM_DATA_COLLECTION.md`), drop the CSV in, re-run the
 pipeline — that swaps the flagged placeholder for real data and closes the one honest gap.
 
 ## Change log
