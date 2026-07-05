@@ -5,7 +5,11 @@
 > when a decision is made or a fact is verified. It is *internal working memory*, not a deliverable.
 > Do NOT overwrite the real `CLAUDE.md` (project instructions) — this is a separate file.
 
-Last updated: 2026-07-04 (during the "rethink from scratch" turn, right after verifying the dataset).
+Last updated: 2026-07-05. **STATUS: COMPLETE.** The AamParakh project is fully built, scrutinised,
+and pushed (commit `1a66c53` on `main`). **`CLAUDE.md` is now the authoritative, self-sufficient
+summary** — read it first; the sections below (3–7) are the build-time working notes kept for the
+blow-by-blow. Only work left is the student's: build the prototype and collect real Alphonso/Kesar
+farm data to replace the flagged placeholder.
 
 ---
 
