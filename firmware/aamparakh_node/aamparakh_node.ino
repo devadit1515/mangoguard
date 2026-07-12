@@ -12,7 +12,7 @@
  *          DM% = LOCAL_SLOPE * (INTERCEPT + sum_i WEIGHT[i]*A[i]) + LOCAL_OFFSET
  *      WEIGHT/INTERCEPT come from the public benchmark (identical to the Python
  *      model, verified to 1e-13). LOCAL_SLOPE/LOCAL_OFFSET default to 1/0 and are
- *      set once from a handful of local fruit (see docs/FARM_DATA_COLLECTION.md);
+ *      set once from a handful of local fruit (see FARM_DATA_COLLECTION.md);
  *      this local step is what makes the meter accurate on a new cultivar.
  *   4. The OLED shows the dry-matter number and a READY / WAIT band at 15% DM.
  *
