@@ -39,8 +39,11 @@ class TreeParams:
     leaf_area_density: float = 1.5
     n_fruit: int = 300
     fruit_radius: float = 0.05  # a mango is roughly 100 mm across
-    shell_alpha: float = 6.0  # Beta shape for normalised radius: mean = a/(a+b)
+    shell_alpha: float = 3.0  # Beta shape for normalised radius: mean = a/(a+b)
     shell_beta: float = 2.0
+    trunk_radius: float = 0.14  # a mature mango trunk
+    n_branches: int = 7  # primary scaffold limbs
+    branch_radius: float = 0.055
 
     @property
     def axes(self) -> np.ndarray:
@@ -126,3 +129,58 @@ def foliage_transmittance(path_len: np.ndarray, leaf_area_density: float) -> np.
     and the chance of threading through without meeting a leaf falls exponentially.
     """
     return np.exp(-G_SPHERICAL * leaf_area_density * np.asarray(path_len, float))
+
+
+def woody_structure(params: TreeParams, rng: np.random.Generator):
+    """Trunk and primary scaffold limbs, as opaque capsules.
+
+    Leaves are not the only thing between a camera and a fruit. A mature mango carries a
+    trunk of roughly 280 mm diameter and a handful of primary limbs, and those block a
+    line of sight completely rather than probabilistically. Leaving them out was why the
+    simulator reported far more visible fruit than the field measures: compensating with
+    leaf density instead would have needed a leaf area index above 20, against the 3 to 6
+    a real bearing mango carries, which is how I know the missing occluder was wood
+    rather than foliage.
+
+    Returned as (start, end, radius) segments in world coordinates.
+    """
+    centre, axes = params.centre, params.axes
+    base = np.array([0.0, 0.0, 0.0])
+    fork = np.array([0.0, 0.0, centre[2] - 0.35 * axes[2]])
+    segments = [(base, fork, params.trunk_radius)]
+    angles = rng.permutation(np.linspace(0, 2 * np.pi, params.n_branches, endpoint=False))
+    for k, ang in enumerate(angles):
+        reach = 0.55 + 0.35 * rng.random()
+        tip = centre + np.array(
+            [
+                reach * axes[0] * np.cos(ang),
+                reach * axes[1] * np.sin(ang),
+                axes[2] * (0.55 * (k % 3 - 1) + 0.2 * rng.standard_normal()),
+            ]
+        )
+        segments.append((fork, tip, params.branch_radius))
+    return segments
+
+
+def blocked_by_wood(points: np.ndarray, camera: np.ndarray, segments) -> np.ndarray:
+    """Whether the line from each point to the camera passes through trunk or limb."""
+    points = np.atleast_2d(points)
+    cam = np.asarray(camera, float)
+    blocked = np.zeros(len(points), bool)
+    d = cam - points
+    seg_len = np.linalg.norm(d, axis=1, keepdims=True)
+    direction = d / np.maximum(seg_len, 1e-12)
+    for a, b, radius in segments:
+        ab = b - a
+        ab_len2 = float(ab @ ab)
+        if ab_len2 < 1e-12:
+            continue
+        # Closest approach between the sight line and the limb axis, sampled along the
+        # limb. Sampling rather than solving keeps the capsule ends handled correctly.
+        for t in np.linspace(0.0, 1.0, 12):
+            axis_pt = a + t * ab
+            v = axis_pt - points
+            proj = np.einsum("id,id->i", v, direction)
+            perp = np.linalg.norm(v - proj[:, None] * direction, axis=1)
+            blocked |= (proj > 0) & (proj < seg_len[:, 0]) & (perp < radius)
+    return blocked

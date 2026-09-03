@@ -141,3 +141,48 @@ uncertainty is in the fitted detection model itself, and resampling fruit barely
 are propagating the detection-model parameter uncertainty into the interval, or
 calibrating the interval width against held-out simulated trees. Both are honest; the
 second is a calibration and must be labelled as one.
+
+---
+
+## 7 — The simulator was easier than a real orchard, checked against published field counts
+
+**Found:** 03/09/2026, on first comparing the simulator with the literature rather than with
+itself.
+
+**Symptom:** the simulator reported 85% of fruit visible from two viewpoints. Wang, Walsh and
+Koirala, counting mango on a real orchard against manual harvest counts, detected **40.2%** of
+the harvest count from dual-view imaging and **62.3%** from video tracking. Objective 1 requires
+the simulated visible fraction to sit inside the range real mango canopies show, and it did not.
+
+**Root cause, first part:** the trees had no wood. A mature mango carries a trunk near 280 mm
+across and several primary limbs, and those block a line of sight completely. The model had
+foliage and fruit and nothing else.
+
+**Why leaf density was not the answer:** raising leaf area density to force the visible fraction
+down would have required a leaf area index above 20. A bearing mango carries 3 to 6. The
+discrepancy therefore had to be a missing occluder rather than an underestimated one, which is
+what identified the wood.
+
+**Fix:** a trunk and seven scaffold limbs, as opaque capsules, now block sight lines. Canopy
+density was reset to leaf area indices of 2.9 to 7.2, which is the physical range, and the fruit
+distribution was moved off the outer shell to Beta(3,2), a mean radius of 0.6 rather than 0.75.
+
+**Verified, and only in part.** One viewpoint now gives 0.49 to 0.67 visible, which brackets the
+published dual-view figure of 0.40 acceptably. Two viewpoints give 0.77 to 0.88 against the
+published video-tracking figure of 0.62, so the simulator remains easier than the field.
+
+**Why I stopped tuning here.** The remaining gap has a geometric explanation rather than a
+parameter one. The published figures come from a vehicle imaging a contiguous hedgerow from two
+fixed sides at 5 km/h, where neighbouring canopies occlude, the camera height is fixed and the
+images carry motion blur. The simulator represents a free-standing tree scanned from positions
+chosen by a person on foot, which is a genuinely easier problem. Forcing agreement by moving
+parameters until the number matched would be adjusting the simulator to rescue a result, which
+is the failure already recorded in entry 4. The gap is stated instead, and it bounds the claims:
+simulated visible fractions are optimistic relative to hedgerow imaging, so the accuracy figures
+should be read as the favourable end.
+
+**Consequence for the comparison.** The published per-tree error, 18.0 fruit against a mean of
+156.5, is 11.5%, obtained on real trees under a harder protocol. It is not comparable with a
+simulated figure and must never be set beside one. The like-for-like comparison remains the
+fitted multiplier scored on identical simulated trees, and the real comparison waits for picked
+and counted trees in 2027.

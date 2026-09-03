@@ -238,3 +238,195 @@ def bootstrap_interval(
     lo = float(np.percentile(draws, 100 * (1 - level) / 2))
     hi = float(np.percentile(draws, 100 * (1 + level) / 2))
     return lo, hi
+
+
+# ---- using the reconstruction itself -------------------------------------------------
+def _truncated_binomial_q(view_counts: np.ndarray, detections: np.ndarray) -> float:
+    """How reliable the detector is, given how many chances it had on each fruit.
+
+    Each fruit had `c` clear views and was detected on `y` of them, so y is binomial in c
+    with the detector's own hit rate q. Fruit detected on none of their chances are
+    missing from the sample, so the likelihood is truncated at zero. Separating q from
+    geometry this way is what makes both identifiable: the reconstruction says how many
+    chances there were, and the histories say what was done with them.
+    """
+
+    def nll(q):
+        q = float(np.clip(q, _P_FLOOR, _P_CEIL))
+        ll = detections * np.log(q) + (view_counts - detections) * np.log1p(-q)
+        ll -= np.log(np.maximum(1.0 - (1.0 - q) ** view_counts, _EPS))
+        return -float(np.sum(ll))
+
+    res = minimize_scalar(nll, bounds=(_P_FLOOR, _P_CEIL), method="bounded")
+    return float(res.x)
+
+
+def reconstruction_informed(observed: dict, n_bins: int = 8) -> float:
+    """Estimate the total from measured observability rather than a smoothness assumption.
+
+    Three steps. The reconstruction says how many cameras had a clear line to each
+    detected fruit, which with the detection histories gives the detector's hit rate and
+    therefore each fruit's chance of appearing at all. Reciprocal-probability weighting
+    then recovers the fruit that were observable but missed. What remains is the fruit
+    that were never observable, and those are estimated by taking the fruit density
+    measured in each shell of the canopy and applying it to the unobserved part of that
+    same shell.
+
+    Working shell by shell matters. Fruit hang toward the outside of a canopy and the
+    unobserved region is its middle, so assuming one density for the whole tree would
+    put far too many fruit in the interior. Assuming instead that the observed and
+    unobserved parts of a *given depth* hold fruit alike is a much weaker claim, and it
+    is the one the geometry supports.
+
+    In simulation the rays are traced against the true foliage, which is the sensing step
+    rather than the estimating step. The estimator sees only what those rays returned. A
+    real reconstruction carves free space with error, and that error is not modelled here.
+    """
+    if observed["n_views"] < MIN_VIEWS_FOR_DETECTION_MODEL:
+        raise Unidentifiable("detection histories need at least two viewpoints")
+    if "reconstruction" not in observed:
+        raise Unidentifiable(
+            "this estimator needs a reconstruction; scan with reconstruct_samples>0"
+        )
+    hist = observed["histories"]
+    if len(hist) == 0:
+        return 0.0
+    scene = observed["reconstruction"]
+
+    c = np.asarray(observed["fruit_view_counts"], float)
+    y = hist.sum(axis=1).astype(float)
+    c = np.maximum(c, y)  # a detection implies a clear view; guard sampling disagreement
+    usable = c > 0
+    if usable.sum() < 5:
+        return float(len(hist))
+
+    q = _truncated_binomial_q(c[usable], y[usable])
+    pi = np.clip(1.0 - (1.0 - q) ** c[usable], _P_FLOOR, 1.0)
+    weights = 1.0 / pi
+
+    # Fruit density per shell, measured where the cameras could see.
+    edges, shell_volume, shell_unknown = scene.radius_profile(n_bins)
+    r = scene._normalised_radius(observed["positions"][usable])
+    idx = np.clip(np.digitize(r, edges) - 1, 0, n_bins - 1)
+
+    observed_volume = shell_volume * (1.0 - shell_unknown)
+    density = np.full(n_bins, np.nan)
+    for b in range(n_bins):
+        sel = idx == b
+        if sel.any() and observed_volume[b] > 1e-6:
+            density[b] = weights[sel].sum() / observed_volume[b]
+
+    known = ~np.isnan(density)
+    if known.sum() < 2:
+        return float(np.sum(weights))
+    centres = 0.5 * (edges[:-1] + edges[1:])
+    # Fruit thin out toward the centre; carry the measured trend into shells with no
+    # observable volume rather than leaving them empty.
+    coef = np.polyfit(centres[known], np.log(np.maximum(density[known], _EPS)), 1)
+    filled = np.where(
+        known, np.nan_to_num(density), np.exp(np.clip(np.polyval(coef, centres), -30, 30))
+    )
+    filled = np.minimum(filled, np.nanmax(density[known]))
+    return float(np.sum(filled * shell_volume))
+
+
+def _fit_density_profile(observed: dict, n_bins: int = 8):
+    """Shared fitting step: detector hit rate, and fruit density by canopy shell."""
+    scene = observed["reconstruction"]
+    c = np.asarray(observed["fruit_view_counts"], float)
+    y = observed["histories"].sum(axis=1).astype(float)
+    c = np.maximum(c, y)
+    usable = c > 0
+    q = _truncated_binomial_q(c[usable], y[usable])
+    pi = np.clip(1.0 - (1.0 - q) ** c[usable], _P_FLOOR, 1.0)
+    weights = 1.0 / pi
+
+    edges, shell_volume, shell_unknown = scene.radius_profile(n_bins)
+    r = scene._normalised_radius(observed["positions"][usable])
+    idx = np.clip(np.digitize(r, edges) - 1, 0, n_bins - 1)
+    observed_volume = shell_volume * (1.0 - shell_unknown)
+    density = np.full(n_bins, np.nan)
+    for b in range(n_bins):
+        sel = idx == b
+        if sel.any() and observed_volume[b] > 1e-6:
+            density[b] = weights[sel].sum() / observed_volume[b]
+    return q, edges, shell_volume, density
+
+
+def parametric_interval(
+    observed: dict, n_boot: int = 150, level: float = 0.90, seed: int = 0, n_bins: int = 8
+) -> tuple[float, float]:
+    """Interval from re-simulating the whole fitted model, not from reshuffling the fruit.
+
+    The first attempt resampled the detected fruit and reported intervals that covered
+    half of what they claimed (`FIX_LOG.md` entry 6). Resampling fruit varies which fruit
+    this tree happened to grow and almost nothing else, while the uncertainty that
+    actually dominates is in the fitted detector hit rate and the density carried into
+    the unobserved region.
+
+    So the whole chain is re-simulated. A synthetic tree is drawn with the estimated
+    number of fruit, positioned by the estimated density profile, each fruit inheriting
+    the clear-view count of the canopy point it sits at, and detected with the estimated
+    hit rate. Re-estimating from each synthetic tree gives the spread the estimator
+    actually has. Fruit that go undetected drop out exactly as they do in the real data,
+    so the truncation is reproduced rather than assumed away.
+    """
+    if observed["n_views"] < MIN_VIEWS_FOR_DETECTION_MODEL or "reconstruction" not in observed:
+        raise Unidentifiable("interval needs a reconstruction and at least two viewpoints")
+    if len(observed["histories"]) == 0:
+        return 0.0, 0.0
+
+    rng = np.random.default_rng(seed)
+    scene = observed["reconstruction"]
+    q, edges, shell_volume, density = _fit_density_profile(observed, n_bins)
+    known = ~np.isnan(density)
+    if known.sum() < 2:
+        raise Unidentifiable("too few observed shells to characterise the density profile")
+
+    centres = 0.5 * (edges[:-1] + edges[1:])
+    coef = np.polyfit(centres[known], np.log(np.maximum(density[known], _EPS)), 1)
+    filled = np.where(
+        known, np.nan_to_num(density), np.exp(np.clip(np.polyval(coef, centres), -30, 30))
+    )
+    filled = np.minimum(filled, np.nanmax(density[known]))
+    n_hat = float(np.sum(filled * shell_volume))
+
+    # Probability a fruit sits at each sampled canopy point, under the fitted profile.
+    sample_bin = np.clip(np.digitize(scene.sample_radius, edges) - 1, 0, n_bins - 1)
+    weight = filled[sample_bin]
+    if weight.sum() <= 0:
+        raise Unidentifiable("fitted density profile is degenerate")
+    weight = weight / weight.sum()
+
+    draws = []
+    for _ in range(n_boot):
+        n_sim = max(int(rng.poisson(n_hat)), 10)
+        pick = rng.choice(len(scene.sample_points), size=n_sim, p=weight)
+        c_sim = scene.sample_views[pick].astype(float)
+        y_sim = rng.binomial(np.maximum(c_sim, 0).astype(int), q)
+        keep = y_sim >= 1
+        if keep.sum() < 10:
+            continue
+        hist = np.zeros((int(keep.sum()), observed["n_views"]), bool)
+        for row, k in enumerate(np.flatnonzero(keep)):
+            hist[row, : int(y_sim[k])] = True
+        synthetic = {
+            "positions": scene.sample_points[pick][keep],
+            "histories": hist,
+            "n_views": observed["n_views"],
+            "params": observed["params"],
+            "cameras": observed["cameras"],
+            "reconstruction": scene,
+            "fruit_view_counts": c_sim[keep],
+        }
+        try:
+            draws.append(reconstruction_informed(synthetic, n_bins))
+        except (Unidentifiable, np.linalg.LinAlgError, ValueError):
+            continue
+    if len(draws) < 20:
+        raise Unidentifiable("parametric bootstrap did not produce enough usable draws")
+    lo = float(np.percentile(draws, 100 * (1 - level) / 2))
+    hi = float(np.percentile(draws, 100 * (1 + level) / 2))
+    # Centre the spread on the point estimate rather than on the bootstrap median.
+    median = float(np.median(draws))
+    return n_hat + (lo - median), n_hat + (hi - median)

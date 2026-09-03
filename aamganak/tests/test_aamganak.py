@@ -156,3 +156,73 @@ def test_estimators_survive_an_empty_scan():
     assert E.naive(obs) == 0
     assert E.capture_recapture(obs) == 0.0
     assert E.geometry_informed(obs) == 0.0
+
+
+# ---- reconstruction ----------------------------------------------------------------
+def test_wood_blocks_a_sight_line_through_the_trunk():
+    """A point directly behind the trunk from the camera must be blocked by it."""
+    params = C.TreeParams(radius=2.0, half_height=1.5, centre_height=2.0)
+    wood = C.woody_structure(params, np.random.default_rng(0))
+    trunk = [seg for seg in wood if seg[2] == params.trunk_radius][:1]
+    camera = np.array([5.0, 0.0, 1.0])
+    behind = np.array([[-1.0, 0.0, 1.0]])  # trunk sits between this point and the camera
+    beside = np.array([[-1.0, 2.0, 1.0]])  # well off the trunk axis
+    assert C.blocked_by_wood(behind, camera, trunk)[0]
+    assert not C.blocked_by_wood(beside, camera, trunk)[0]
+
+
+def test_unknown_region_grows_as_viewpoints_are_removed():
+    rng = np.random.default_rng(21)
+    params = C.TreeParams(leaf_area_density=1.8, n_fruit=200)
+    grid = V.FoliageGrid(params, rng)
+    from aamganak import reconstruct as R
+
+    few = R.ReconstructedScene(params, V.camera_ring(2), grid, n_samples=2500, rng=rng)
+    many = R.ReconstructedScene(params, V.camera_ring(12), grid, n_samples=2500, rng=rng)
+    assert few.unknown_fraction > many.unknown_fraction
+
+
+def test_unknown_and_observed_volume_sum_to_the_canopy():
+    rng = np.random.default_rng(22)
+    params = C.TreeParams(leaf_area_density=1.5, n_fruit=150)
+    grid = V.FoliageGrid(params, rng)
+    from aamganak import reconstruct as R
+
+    scene = R.ReconstructedScene(params, V.camera_ring(4), grid, n_samples=2000, rng=rng)
+    assert scene.unknown_volume + scene.observed_volume == pytest.approx(params.volume, rel=1e-9)
+
+
+def test_reconstruction_estimator_needs_a_reconstruction():
+    """It must refuse rather than silently fall back to a weaker estimate."""
+    rng = np.random.default_rng(23)
+    params = C.TreeParams(n_fruit=150)
+    observed, _ = V.scan_tree(params, 4, rng)  # no reconstruct_samples
+    with pytest.raises(E.Unidentifiable):
+        E.reconstruction_informed(observed)
+
+
+def test_reconstruction_estimator_beats_the_naive_count():
+    rng = np.random.default_rng(24)
+    params = C.TreeParams(leaf_area_density=1.8, n_fruit=300)
+    observed, truth = V.scan_tree(params, 3, rng, reconstruct_samples=2500)
+    est = E.reconstruction_informed(observed)
+    assert est > E.naive(observed)  # it corrects upward
+    assert abs(est - truth["n_fruit"]) < abs(E.naive(observed) - truth["n_fruit"])
+
+
+def test_parametric_interval_brackets_its_own_point_estimate():
+    rng = np.random.default_rng(25)
+    params = C.TreeParams(leaf_area_density=1.5, n_fruit=300)
+    observed, _ = V.scan_tree(params, 4, rng, reconstruct_samples=2500)
+    est = E.reconstruction_informed(observed)
+    lo, hi = E.parametric_interval(observed, n_boot=40, seed=1)
+    assert lo < est < hi
+    assert (hi - lo) / est < 1.0  # an interval wider than the estimate would be useless
+
+
+def test_true_canopy_never_reaches_an_estimator():
+    """Structural guard: the scan hands over no route back to the foliage."""
+    rng = np.random.default_rng(26)
+    observed, _ = V.scan_tree(C.TreeParams(n_fruit=120), 3, rng, reconstruct_samples=1500)
+    assert "grid" not in observed
+    assert not hasattr(observed["reconstruction"], "occupied")

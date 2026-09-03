@@ -138,3 +138,37 @@ The objectives and success conditions above are unchanged in substance; S2 is no
 against the fixed multiplier at matched viewpoint counts, and the viewpoint count becomes
 the primary experimental axis rather than a fixed setting. The original framing was not
 wrong so much as aimed at a regime that a twelve-viewpoint protocol does not reach.
+
+### 03/09/2026 — objective 3 is answered by the reconstruction, not by a proxy
+
+Objective 3 asked for geometric extrapolation into the volume no viewpoint could see. The
+first attempt used the mean length of canopy between a fruit and the cameras, computed
+from the canopy envelope, as a stand-in for how hidden that fruit was. That proxy assumes
+foliage is spread evenly, which is the assumption the clumped simulator exists to break,
+and it barely improved on plain capture-recapture.
+
+The replacement uses what a carved reconstruction actually recovers: for any point in the
+canopy, how many cameras had an unobstructed line of sight to it. Points seen by none of
+them are the unknown region, and its volume is measured rather than assumed. The estimator
+now separates two things that were previously tangled. The reconstruction says how many
+chances the detector had on each fruit; the detection histories say what it did with those
+chances. Both become identifiable, and the fruit that were never observable at all are
+estimated by carrying the fruit density measured in each shell of the canopy into the
+unobserved part of that same shell.
+
+Objective 3's "done when" test is unchanged and is now met by a different mechanism than
+the one I had in mind when I wrote it.
+
+### 03/09/2026 — a published reference point, and what it may and may not be compared with
+
+Wang, Walsh and Koirala counted mango on real trees against manual harvest counts, which is
+the same ground truth objective 5 specifies. Their dual-view imaging recovered 40.2% of the
+harvest count and their video tracking 62.3%, with per-orchard correction factors ranging
+from 1.05 to 2.43, and they state that the final estimate is sensitive to that factor. That
+is the gap this project addresses, in the field's own words.
+
+Those figures come from a vehicle imaging a contiguous hedgerow at speed, which is a harder
+protocol than a person walking around a free-standing tree. Their per-tree error of 11.5%
+is therefore not comparable with any simulated figure here and must not be set beside one.
+The like-for-like comparison is the fitted multiplier scored on identical simulated trees.
+The comparable comparison waits for picked and counted trees in 2027.

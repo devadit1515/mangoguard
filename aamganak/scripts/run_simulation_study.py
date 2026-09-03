@@ -32,13 +32,15 @@ from aamganak import estimators as E  # noqa: E402
 from aamganak import visibility as V  # noqa: E402
 
 SEED = 20260903
-N_CAL, N_TEST = 30, 90
-VIEW_COUNTS = [1, 2, 3, 4, 6, 8, 12]
+N_CAL, N_TEST = 20, 60
+VIEW_COUNTS = [1, 2, 3, 4, 6, 12]
 REFERENCE_VIEWS = 12  # what a patient operator would do
+RECONSTRUCT_SAMPLES = 2500  # Monte Carlo points per tree for the carved-volume estimate
 OUT = ROOT / "artifacts" / "sim_metrics.json"
 
-# Canopy densities spanning an open, well-pruned tree to a dense unpruned one.
-LAD_RANGE = (0.5, 3.0)
+# Leaf area density, calibrated to the leaf area index a bearing mango actually carries:
+# 0.8 to 2.0 over a 3.6 m canopy is an LAI of 2.9 to 7.2 (see FIX_LOG entry 7).
+LAD_RANGE = (0.8, 2.0)
 FRUIT_RANGE = (120, 600)
 
 
@@ -48,6 +50,8 @@ def random_tree(rng: np.random.Generator) -> C.TreeParams:
         half_height=float(rng.uniform(1.4, 2.2)),
         leaf_area_density=float(rng.uniform(*LAD_RANGE)),
         n_fruit=int(rng.integers(*FRUIT_RANGE)),
+        shell_alpha=3.0,
+        shell_beta=2.0,
     )
 
 
@@ -56,7 +60,10 @@ def make_population(n: int, rng: np.random.Generator):
     trees = []
     for _ in range(n):
         params = random_tree(rng)
-        scans = {m: V.scan_tree(params, m, rng) for m in VIEW_COUNTS}
+        scans = {
+            m: V.scan_tree(params, m, rng, reconstruct_samples=RECONSTRUCT_SAMPLES)
+            for m in VIEW_COUNTS
+        }
         trees.append(scans)
     return trees
 
@@ -81,6 +88,7 @@ def main():
             "chao": E.chao,
             "horvitz_thompson": E.horvitz_thompson,
             "geometry_informed": E.geometry_informed,
+            "reconstruction_informed": E.reconstruction_informed,
         }
 
     names = list(methods_for(VIEW_COUNTS[0]))
@@ -165,9 +173,9 @@ def main():
 
     # Where each estimator wins: accuracy split by canopy density as well as viewpoints.
     bands = {
-        "open": lambda r: r["leaf_area_density"] < 1.25,
-        "mid": lambda r: 1.25 <= r["leaf_area_density"] < 2.0,
-        "dense": lambda r: r["leaf_area_density"] >= 2.0,
+        "open": lambda r: r["leaf_area_density"] < 1.2,
+        "mid": lambda r: 1.2 <= r["leaf_area_density"] < 1.6,
+        "dense": lambda r: r["leaf_area_density"] >= 1.6,
     }
     by_band = {}
     for band, pred in bands.items():
@@ -184,19 +192,27 @@ def main():
             by_band[band][str(m)] = entry
     out["accuracy_by_density_and_views"] = by_band
 
-    # Interval coverage at the protocol a grower would realistically use.
-    covered, widths = [], []
-    for scans in test[:40]:
-        observed, truth = scans[2]
-        lo, hi = E.bootstrap_interval(observed, E.geometry_informed, n_boot=60, seed=SEED)
-        covered.append(lo <= truth["n_fruit"] <= hi)
-        widths.append((hi - lo) / truth["n_fruit"] * 100.0)
-    out["interval_coverage_at_2_views"] = {
-        "nominal": 0.90,
-        "achieved": round(float(np.mean(covered)), 3),
-        "mean_width_pct_of_truth": round(float(np.mean(widths)), 2),
-        "n_trees": len(covered),
-    }
+    # Interval coverage, at every protocol an operator might use. The first attempt
+    # resampled the detected fruit and covered barely half of what it claimed; this is
+    # the parametric bootstrap that replaced it (FIX_LOG entry 6).
+    coverage = {}
+    for m in [v for v in VIEW_COUNTS if v >= 2]:
+        covered, widths = [], []
+        for i, scans in enumerate(test):
+            observed, truth = scans[m]
+            try:
+                lo, hi = E.parametric_interval(observed, n_boot=80, seed=SEED + i)
+            except E.Unidentifiable:
+                continue
+            covered.append(lo <= truth["n_fruit"] <= hi)
+            widths.append((hi - lo) / truth["n_fruit"] * 100.0)
+        coverage[str(m)] = {
+            "nominal": 0.90,
+            "achieved": round(float(np.mean(covered)), 3) if covered else None,
+            "mean_width_pct_of_truth": round(float(np.mean(widths)), 2) if widths else None,
+            "n_trees": len(covered),
+        }
+    out["interval_coverage"] = coverage
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({**out, "per_tree": rows}, indent=2))

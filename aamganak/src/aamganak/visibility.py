@@ -71,6 +71,7 @@ class FoliageGrid:
         clump_scale: float = CLUMP_SCALE,
     ):
         self.params = params
+        self.wood = C.woody_structure(params, rng)
         self.voxel = voxel
         self.lower = params.centre - params.axes
         extent = 2.0 * params.axes
@@ -105,7 +106,8 @@ class FoliageGrid:
         ijk = np.clip(ijk, 0, self.shape - 1)
         hit = self.occupied[ijk[..., 0], ijk[..., 1], ijk[..., 2]] & valid
         # The first step sits on the fruit itself; ignore it so a fruit cannot occlude itself.
-        return hit[:, 1:].any(axis=1)
+        leaves = hit[:, 1:].any(axis=1)
+        return leaves | C.blocked_by_wood(starts, cam, self.wood)
 
     def _canopy_exit_fraction(self, starts: np.ndarray, camera: np.ndarray) -> np.ndarray:
         """Fraction of the fruit-to-camera segment that lies inside the canopy envelope."""
@@ -186,6 +188,7 @@ def scan_tree(
     rng: np.random.Generator,
     detector_reliability: float = 0.95,
     camera_radius: float = 4.0,
+    reconstruct_samples: int = 0,
 ):
     """One simulated tree, scanned once. Everything downstream starts here.
 
@@ -207,6 +210,27 @@ def scan_tree(
         "params": params,
         "cameras": cameras,
     }
+    if reconstruct_samples:
+        # Everything a carved reconstruction would recover is computed here, at sensing
+        # time, and only the results are handed on. The foliage itself never enters the
+        # dictionary an estimator receives, so no estimator can reach the true canopy
+        # even by accident. The guard is structural rather than a matter of discipline.
+        from . import reconstruct as R
+
+        scene = R.ReconstructedScene(
+            params,
+            cameras,
+            grid,
+            fruit=observed["positions"] if len(observed["positions"]) > 1 else None,
+            n_samples=reconstruct_samples,
+            rng=rng,
+        )
+        observed["reconstruction"] = scene
+        observed["fruit_view_counts"] = (
+            scene.fruit_view_counts(observed["positions"], grid)
+            if len(observed["positions"])
+            else np.zeros(0, int)
+        )
     truth = {
         "n_fruit": params.n_fruit,
         "n_seen": int(seen.sum()),
