@@ -186,3 +186,24 @@ should be read as the favourable end.
 simulated figure and must never be set beside one. The like-for-like comparison remains the
 fitted multiplier scored on identical simulated trees, and the real comparison waits for picked
 and counted trees in 2027.
+
+---
+
+## 6b — the interval fix over-corrected, and that is also a miscalibration
+
+**Found:** 03/09/2026, on the calibrated study.
+
+**Symptom:** the parametric bootstrap replaced 50% coverage with 98% at two viewpoints and
+100% at three and above, against a nominal 90%. Mean width is 17% to 19% of the true count.
+
+**Reading:** the intervals now cover more than they claim. That is the safe direction for a
+grower deciding how much labour to hire, but it is still a miscalibration, and an interval
+that is honest about being conservative is worth more than one that quietly is. With sixty
+trees and sixty covered, the true coverage is above about 0.95, so the excess is real rather
+than a small-sample artefact.
+
+**Status:** open, and deliberately not tuned. Narrowing the interval until the coverage hits
+0.90 on these trees would be fitting the interval to the test set. The correct route is to
+calibrate the width on a separate set of simulated trees and then report coverage on trees
+never used for that, which is the next piece of work. Until then the report says the
+intervals are conservative and gives both the coverage and the width.
