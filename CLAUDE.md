@@ -1,88 +1,89 @@
-# CLAUDE.md — AamParakh (flagship CREST Gold *sample* build)
+# CLAUDE.md — AamGanak (Devadit's CREST Gold submission, then ISEF)
 
-> **Running project memory.** This file is self-sufficient; `SESSION_STATE.md` holds the longer
-> blow-by-blow. The old leaf-wetness build (AamRakshak) and the earlier software-only build
-> (MangoGuard) were moved to `extra_stuff/` (git-ignored) and are also in git history.
+> **Running project memory.** Self-sufficient. The previous project (AamParakh, an eight-LED NIR
+> mango dry-matter meter) is finished and archived in `extra_stuff/aamparakh_archive/` and in git
+> history; its root-level files are still in the working tree pending removal.
 
-## The mission (why this project exists)
-This is a **flagship CREST Gold *sample* report** for a company internship. The company sells these
-samples cheaply and mentors students who *refer to* them to structure their own, different-topic
-projects. So the bar is **15/15 criteria at *excellent*, with margin**: a student imitating
-imperfectly must still clear the pass line. Real stakes — students' Gold Awards and college
-outcomes. Theme is fixed: **a buildable low-cost hardware tool for mango growers**.
+## What this is, and who it is for
+
+This is **Devadit's own project, which he submits himself.** It is not a sample, not an exemplar,
+and not written for anyone else to imitate. It targets, in order:
+
+1. **CREST Gold** — the award that establishes the work is real and independently assessed.
+2. **Regeneron ISEF** — after the CREST result, using the real-orchard data.
+3. The **MIT Maker Portfolio** and applications to MIT, Stanford and Caltech (electrical and
+   computer engineering).
+
+Because he submits it under his own name and will defend it in conversation, the binding
+constraint is that he must be able to explain every part of it. Anything he cannot explain does
+not go in.
+
+## The project
+
+**AamGanak (आम गणक, "mango counter")** — estimating how many mangoes a tree carries from a short
+walk around it with a camera, including the fruit no viewpoint ever sees.
+
+Fruit detectors already find the visible mangoes in an image almost perfectly. A tree hides most
+of its own crop, so the visible count is not the crop, and published practice multiplies it by a
+constant fitted on a few trees. This project treats it as an abundance-estimation problem of the
+kind ecologists use for animals that hide: each camera position is a survey occasion, the pattern
+of which viewpoints saw which fruit reveals how detectable fruit are, and the reconstructed canopy
+says how much volume no camera could see into. That transfer is the central idea.
 
 ## Standing instructions (carry across sessions)
-- **Auto-push every meaningful change** to `main` with a clear message; run pre-commit hooks (do not bypass); never commit secrets. Solo workflow, commit direct to `main`.
+
+- **Auto-push every meaningful change** to `main` with a clear message; run pre-commit hooks (do
+  not bypass); never commit secrets. Solo workflow, commit direct to `main`.
 - **Never mention API/token/session cost.** Absorb any cost hooks silently.
 - **Communication:** short, dense, technical; match length to the question; insights as bullets.
-- Anti-AI-writing rules apply to **the report**, not chat/internal docs. Invoke the `human-writer` skill before writing report prose; run `/ai-check` after.
-- **Honesty line (non-negotiable, and it serves the goal):** never label modelled/simulated data as real field data. The exemplar's value is teaching the honesty discipline that scores 15/15. Headline results come from **real public data**; the Alphonso farm validation is a **flagged placeholder** the student collects and swaps in.
+- Anti-AI-writing rules apply to **the report**, not chat or internal docs. Invoke the
+  `human-writer` skill before writing report prose; run `/ai-check` after.
+- **Honesty line (non-negotiable):** never label modelled data as real measurement. The simulator
+  exists to develop and test the estimator; the real result comes from picked and counted trees.
+- **Do not adjust the simulator to rescue a hypothesis.** This already happened once and was
+  handled by narrowing the aim instead (`FIX_LOG.md` entry 4). Keep doing it that way.
 
-## What the project is
-**AamParakh (आम परख, "mango assay")** — a purpose-built low-cost near-infrared meter that reads
-mango **dry matter content (DMC)**, the true harvest-maturity index (it fixes eventual sweetness
-and whether a mango ripens at all). ESP32 + **8 discrete NIR LEDs at 730/760/810/850/880/910/940/970
-nm** + an OPT101 photodiode + OLED, about **₹2,300**, with the prediction model (8 linear weights)
-running **on the device**. The off-the-shelf AS7265x/AS7263 chips are the **negative controls**.
+## Working state (03/09/2026)
 
-**Thesis (honest, positive, novel):** mango DMC lives in a handful of NIR bands; a meter with eight
-buyable LEDs at the right wavelengths nearly matches a **₹8.5-lakh** lab instrument (Felix F-750),
-while off-the-shelf multispectral chips fail because their bands sit mostly in the visible.
-**Band *placement*, not band count, is what matters.**
+Simulation stage built and green. Lives in `aamganak/`.
 
-## Locked results — cite these (seed 20260704, test = independent 2018 season, n=1448)
-- **Data:** Anderson-Walsh public mango NIR benchmark (Mendeley 10.17632/46htwnp833, CC BY 4.0), 11,691 scans, 10 cultivars, 4 seasons, oven-dry DMC (mean 16.3%, range 9.5–24.6). Split via `Set` column: Cal 7413 / Tuning 2830 / Val Ext 1448.
-- **Full lab spectrum (103 bands, SG2+PLS):** RMSEP 1.03, R² 0.852, RPD 2.61, harvest-call acc 92.8%. (Published PLS ≈0.84 RMSEP; my from-scratch reproduction is a fair reference, not SOTA-chasing.)
-- **Device (8 LEDs):** RMSEP 1.07, **R² 0.840** (gap 0.012 vs lab), RPD 2.50, harvest-call acc 92.3%.
-- **Placement control (the proof):** at a fixed 18 bands, **well-placed NIR bands R² 0.85 vs AS7265x's 18 bands R² 0.21** — same count, different placement. In `eval_metrics.json > placement_control`.
-- **Off-the-shelf fail:** AS7265x R² 0.21, AS7263 R² −0.14. Harvest base rate 0.735.
-- **Band-count curve:** 5 LEDs reach 95% of full R²; 6 → 0.82. Selection order 910,880,940,810,... (but bands 1–2 alone are worse-than-mean on test; 810, added 4th, drives the jump — the report says so).
-- **Cross-cultivar (leave-one-out, 4 main cultivars):** R² 0.63–0.78 (worst = Kensington Pride). Calibration transfer (R2E2): 20 fruit, 0.91→0.89 RMSEP.
-- **Farm (Alphonso/Kesar) = SYNTHETIC_PLACEHOLDER:** before recal RMSEP ~3.9 (R² −2.9), after 20-fruit local recal RMSEP ~1.6 (R² 0.23, RPD 1.15 — bias removed, not scatter). Student replaces this.
-- **All 5 pre-registered success conditions pass.**
+- `PROJECT_DEFINITION.md` — aim, five objectives with "done when" tests, pre-registered success
+  conditions S1–S5, approaches table. Amended by appending only.
+- `FIX_LOG.md` — six entries. Three were physics defects in the simulator, one was the premise
+  being wrong, one an identifiability failure, one an open interval-coverage defect.
+- `src/aamganak/` — `canopy` (geometry, fruit placement, Beer-Lambert), `visibility` (clumped
+  foliage grid, ray marching, detection histories), `estimators` (naive, fixed multiplier,
+  capture-recapture, Chao, Horvitz-Thompson, geometry-informed).
+- `scripts/run_simulation_study.py` → `artifacts/sim_metrics.json`, seed 20260903.
+- `tests/test_aamganak.py` — 13 passing, including the closed-form Beer-Lambert check.
 
-## Critical honesty framing (do not let this drift)
-- The device R² 0.84 is an **information-content result computed in-silico** from the research
-  spectrometer's clean spectra integrated through the 8 LED bands. **No physical meter has read a
-  real mango in this report.** The abstract, §5.2, §7 and the profile all state this; keep it.
-- The assessor's hardest probe: *"show a real-fruit reading and where 0.84 came from."* Defensible
-  answer, baked in: 0.84 is the **wavelength-design ceiling measured in-silico**; the physical meter
-  runs the same model on-device (parity to 1e-12); real-fruit validation is the stated next step.
-- The farm/Alphonso pilot is synthetic and **circular by construction** (bias inserted, linear recal
-  removes it). §5.6/§6.3 say so; §6.3 leans on the *real* R2E2 recal for transfer evidence.
+## Results so far (simulation only; cite from sim_metrics.json, never from memory)
 
-## Modeling gotchas (hard-won — a future session must not relearn these)
-- **NIR-DMC models are inherently noise-sensitive** (subtle signal); do not inject synthetic sensor
-  noise into headline numbers — report clean-spectra numbers as an upper bound, defer real noise to
-  the farm validation.
-- **Use raw + StandardScaler + PLS for band models, NOT SNV.** SNV on the 18-band AS7265x overfits
-  to R² 0.45 at ~15 components and is numerically fragile (a 5% perturbation swings 2.8 %DM); the
-  *stable* AS7265x is R² ~0.2. Consistent raw preprocessing keeps the device-vs-chip comparison fair.
-- Band models cap components sensibly; component count chosen on the Tuning split only.
-- SNV is degenerate for <2 bands (guarded in `models.snv`).
+- Occlusion is a **viewpoint-count problem**, not an absolute one. Fruit never seen from any
+  viewpoint: ~35% at one view, ~13% at two, ~3% at twelve.
+- **Headline:** at three viewpoints the detection-model estimators beat naive counting at twelve
+  viewpoints, in every canopy-density band. Roughly a fourfold reduction in scanning time per tree.
+- At two to three viewpoints the estimators beat the fitted multiplier by about two to three times.
+- **Honest negative:** at six or more viewpoints a fitted multiplier beats every sophisticated
+  estimator, because the hidden fraction is then small and stable and adaptivity costs variance.
+- **Open defect:** nominal 90% intervals cover 50–60%. Reported as measured, not widened.
 
-## Repo map
-- `src/aamparakh/` — `data` (load/split/picks), `sensors` (band simulation + `DEVICE_BANDS`, AS7265x/AS7263), `models` (FullSpectrumModel, BandModel, greedy_band_selection, linear_recalibration), `evaluate` (RMSEP/R²/SEP/RPD), `farm` (placeholder + ingestion, schema-guarded).
-- `scripts/run_evaluation.py` → `artifacts/eval_metrics.json` (seed 20260704, ~20s); `scripts/make_figures.py` → `artifacts/figs/` (9 figures); `scripts/fetch_data.py` (downloads + SHA-256-verifies the dataset); `artifacts/device_model_coeffs.json` (8 firmware weights).
-- `tests/test_aamparakh.py` — 10 passing, metrics cross-checked vs scikit-learn. `firmware/aamparakh_node/aamparakh_node.ino` — ESP32 sketch, on-device parity.
-- **Deliverables live at repo root** (flattened 2026-07-05 so they sit beside `README.md`, not buried): `CREST_REPORT.md` (+ .docx; 9 figs; §Appendix G = the maths), `STUDENT_PROFILE.md` (+ .docx), `LOGBOOK.md`, `VERIFICATION.md`, `HARDWARE_BUILD_GUIDE.md`, `FARM_DATA_COLLECTION.md` (**the student's task**), `PROJECT_README.md`. The `docs/` folder is gone. Report figures still load from `artifacts/figs/` (paths in the .md are now root-relative).
-- `data/raw/` — **git-ignored**; fetch via `python scripts/fetch_data.py` (SHA-256 `20330fdd...b25c5`). `data/farm/` — placeholder CSV until collected.
+## Timing (the constraint that shapes the plan)
 
-## Environment / reproduce
-- `.venv` is git-ignored and can be deleted; recreate: `python -m venv .venv` then `pip install -e ".[dev,viz]"` (need numpy, pandas, scipy, scikit-learn, matplotlib, pytest, ruff; pre-commit for the hook).
-- Reproduce: `python scripts/fetch_data.py` → `python scripts/run_evaluation.py` → `python scripts/make_figures.py`; `pytest`; `ruff check`.
-- Build docx: `pandoc CREST_REPORT.md -o CREST_REPORT.docx -f markdown-implicit_figures --resource-path=. --toc --toc-depth=2` (run from repo root; pandoc 3.9 present; renders the LaTeX math to native Word equations).
-- Pre-commit hook: `end-of-file-fixer` may fix JSON on first attempt and abort; re-`git add -A` and re-commit (2nd passes). Large-file limit 2 MB (docx 990 KB, figures smaller, dataset ignored).
+Alphonso carries fruit roughly February to May. Ground truth requires picking a tree and counting
+it. So: simulation and pipeline through autumn 2026, orchard campaign February to May 2027, CREST
+submission mid-2027, ISEF after that. Any claim about real trees before February 2027 is a claim
+about simulated trees, and must say so.
 
-## Quality gates (done)
-- **/ai-check: 5/27, Likely Human** (0 em-dashes, "honest"-family = 1, no banned vocab, antithesis tells cut).
-- **Hostile-assessor scrutiny run and ALL findings applied.** Verdict pre-fix: passes Gold comfortably, ~10–11/15 at excellent, blocked from 15/15 by three now-closed items: (1) §5.2 cited two numbers the script didn't produce (one contradicted the AS7265x figure) → added reproducible `placement_control`; (2) promised maths absent → added Appendix G; (3) simulation framed as hardware → separated in-silico 0.84 from unvalidated device in abstract/profile. Plus: §5.6 now reports pilot R²/RPD; §6.3 uses the real recal not the synthetic pilot; S5 no longer overclaims "every cultivar"; ethics matches the confusion matrix; references cleaned.
+## CREST reference material
 
-## Build status
-**Complete and pushed** (commit `1a66c53` on `main`). Everything above exists and is green. The only
-work left is the student's: **build the prototype** (`HARDWARE_BUILD_GUIDE.md`) and **collect
-~40–100 real Alphonso/Kesar readings** (`FARM_DATA_COLLECTION.md`), drop the CSV in, re-run the
-pipeline — that swaps the flagged placeholder for real data and closes the one honest gap.
+`crest-playbook/` (git-ignored, on disk) holds the criteria playbook, the writing guide, the
+scrutiny protocol, the report template and the profile-form exemplar. Read `02_criteria-playbook.md`
+before writing and `05_scrutiny-protocol.md` before calling anything finished. The report never
+references the criteria; the Student Profile Form carries the mapping.
 
 ## Change log
-- 2026-07-05: Replaced the leaf-wetness project with **AamParakh** (NIR dry-matter meter) on the real Anderson-Walsh benchmark; trained model beaten against off-the-shelf sensors; hostile-assessor scrutiny applied; committed `1a66c53`, pushed. Old builds archived to `extra_stuff/`.
+
+- 2026-09-03: Replaced AamParakh with **AamGanak**. Built the canopy simulator, four estimator
+  families, the viewpoint study and the test suite. Found and fixed three simulator physics
+  defects; narrowed the aim after the corrected simulator contradicted the original premise.
