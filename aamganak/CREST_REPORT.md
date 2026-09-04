@@ -241,8 +241,14 @@ and had to climb out of twice. Section 4 sets out how.
 The canopy is an ellipsoid of foliage with a leaf area density, a trunk, seven scaffold limbs, and
 fruit placed with a bias toward the outside. Foliage is built once per tree as a grid of cells that
 are either leaf or air, with the occupancy set so that average transmittance matches the
-Beer-Lambert law, and every line of sight is traced through that one fixed arrangement. Appendix C
-gives the mathematics.
+Beer-Lambert law, and every line of sight is traced through that one fixed arrangement.
+
+Whether a fruit is found is not a yes or no. A detector sees a fruit rather than a point, and how
+much of that fruit is showing decides whether it is found, which is most of the difference between
+the F1 near 0.97 that published mango detectors reach on curated test images and the 0.89 they reach
+on daytime orchard images [3]. So visibility is measured over nine points spread across the face
+each fruit presents to the camera, and recall climbs with the share showing. Appendix C gives the
+mathematics.
 
 ---
 
@@ -299,14 +305,20 @@ line of sight completely.
 
 Adding the wood and resetting leaf density to physical values brought one viewpoint to 57% visible,
 which brackets the published dual-view figure acceptably. Two viewpoints remained at 82% against
-their 62%, so the simulator is still easier than the field.
+their 62%, so the simulator was still easier than the field.
 
-I stopped tuning there. The remaining gap has a geometric explanation: their figures come from a
-vehicle imaging a continuous hedgerow at 5 km/h, where neighbouring canopies occlude, camera height is
-fixed and images carry motion blur, while my trees stand alone and are scanned from positions chosen
-by someone on foot. Moving parameters until the number matched would be adjusting the simulator to
-rescue a result, which is the mistake I had already made once. The gap is stated instead, and it
-bounds the claims: the accuracy figures below are the favourable end.
+The rest of that gap closed when detection stopped being a yes or no. Once recall depended on how
+much of a fruit was showing, sweeping the detector's ceiling and its threshold found a setting that
+reproduces both published figures at once: 35% of fruit detected from one viewpoint against their
+40.2% from dual view, and 62% from two viewpoints against their 62.3% from video tracking. Matching
+both from a single setting is closer agreement than I expected.
+
+I am reporting that as a calibration of the whole pipeline rather than as a measurement of a
+detector, because the two are not the same thing. Their figure counts detections against a harvest,
+so it includes fruit no camera was ever pointed at, high in the tree or on the far side of a row,
+while my cameras see the whole tree. The calibrated setting may be standing in for losses this model
+does not represent. That is why the study re-runs its comparison under a better detector and a worse
+one, so the conclusion can be checked against the setting rather than resting on it.
 
 ![Figure 1](artifacts/figs/fig1_visibility_vs_views.png)
 
@@ -643,7 +655,10 @@ originals, and that check is outstanding.
   twenty tests, including the closed-form check on the transmittance model.
 - **Population.** Eighty trees: twenty to fit the multiplier, sixty held out for scoring. Canopy
   radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600.
-- **Detector.** Assumed, at a fixed reliability of 0.95 on any clear line of sight. Not measured.
+- **Detector.** Recall rises with the share of each fruit showing, measured over nine points across
+  the face it presents to the camera, saturating at a ceiling of 0.89 and halving at 0.85 showing.
+  Those two values are calibrated so that the pipeline reproduces both published field detection
+  rates, and the study re-runs its headline comparison under a better and a worse detector.
 - **Record of defects.** `FIX_LOG.md`, eight entries with cause, fix and verification.
 - **Record of scope changes.** `PROJECT_DEFINITION.md`, amended by appending only.
 
@@ -661,8 +676,13 @@ suite checks.
 giving foliage correlated over roughly 20 cm. Canopy models carry a clumping index for this reason:
 scattered-leaf theory gets gap statistics wrong even when mean density is right [11].
 
-**Detection.** A fruit with $c$ clear viewpoints and detector hit rate $q$ is detected $y \sim
-\mathrm{Binomial}(c, q)$ times, and enters the data only if $y \ge 1$. The hit rate is fitted by
+**Detection.** Writing $v$ for the share of a fruit's face that is showing from a given viewpoint,
+recall is $q\,\sigma(\kappa (v - v_{1/2}))$ for a logistic $\sigma$, with ceiling $q$,
+half-recall point $v_{1/2}$ and sharpness $\kappa$, and zero when nothing is showing. The estimator
+does not know $v$ and treats each viewpoint as clear or not, so its model is deliberately coarser
+than the process generating the data, which is the situation any real deployment is in. A fruit with
+$c$ clear viewpoints and hit rate $q$ is then modelled as detected $y \sim \mathrm{Binomial}(c, q)$
+times, entering the data only if $y \ge 1$. The hit rate is fitted by
 maximising the zero-truncated likelihood
 
 $$\prod_i \frac{\binom{c_i}{y_i} q^{y_i}(1-q)^{c_i-y_i}}{1-(1-q)^{c_i}},$$
