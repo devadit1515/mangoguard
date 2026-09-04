@@ -31,7 +31,7 @@
 | for the project and have broken it |                          | five numbered objectives, each ending in a "Done when" test that can be    |
 | down into smaller objectives       | Section 1.2, page TBC;   | checked rather than judged.                                                |
 |                                    |                          |                                                                            |
-|                                    | Section 5.7, page TBC    | Section 5.7 returns to all five against the results and says plainly which |
+|                                    | Section 5.8, page TBC    | Section 5.8 returns to all five against the results and says plainly which |
 |                                    |                          | is not met: the fifth, validation against picked and counted trees, cannot |
 |                                    |                          | be met until the fruit exists. Four are met and reported.                  |
 +------------------------------------+--------------------------+----------------------------------------------------------------------------+
@@ -119,13 +119,19 @@
 | your actions and decisions         |                          |                                                                            |
 | affected the project's outcome     | Section 4, page TBC      | Replacing a smooth canopy-depth proxy with the reconstruction's            |
 |                                    |                          | measurement of unobserved volume roughly halved the error at two           |
-|                                    |                          | viewpoints. Separating the detector's hit rate from the number of chances  |
+|                                    | Section 5.6, page TBC    | viewpoints. Separating the detector's hit rate from the number of chances  |
 |                                    |                          | it had made both quantities identifiable; the estimator that does not      |
 |                                    |                          | separate them reaches 28.3% error at two viewpoints where the one that     |
 |                                    |                          | does reaches 2.3%.                                                         |
 |                                    |                          |                                                                            |
 |                                    |                          | Section 4 traces the opposite direction too: my first simulator flattered  |
 |                                    |                          | every result, and correcting it changed what the project was about.        |
+|                                    |                          |                                                                            |
+|                                    |                          | A third: testing the conclusion against a deliberately worse detector,     |
+|                                    |                          | rather than only the one the calibration chose, is what found the setting  |
+|                                    |                          | where my own method loses to the multiplier it is meant to beat. That      |
+|                                    |                          | boundary would not be in the report if I had only tested where I expected  |
+|                                    |                          | to win.                                                                    |
 +------------------------------------+--------------------------+----------------------------------------------------------------------------+
 | **3.3** You have explained what    | Section 8, page TBC      | Section 8 is specific rather than general. My simulated trees had no       |
 | you have learnt and reflected on   |                          | trunks for two days and every internal check passed, because the checks    |
@@ -194,7 +200,13 @@
 |                                    |                          | A fourth is recorded but is not a defect in the code: the corrected        |
 |                                    |                          | simulator contradicted the premise the project began with, and I narrowed  |
 |                                    |                          | the aim rather than adjusting the simulator to rescue it. The full log of  |
-|                                    |                          | ten entries, including two still open, is in the repository.               |
+|                                    |                          | twelve entries, including three still open, is in the repository.          |
+|                                    |                          |                                                                            |
+|                                    |                          | A fifth is a diagnosis I got wrong. I attributed unstable prediction       |
+|                                    |                          | intervals to too few calibration trees and said the fix was more of them.  |
+|                                    |                          | Tripling the set barely moved the fitted correction, which showed the      |
+|                                    |                          | cause was the shape of the correction rather than its precision. The       |
+|                                    |                          | refuted explanation is left in the log with the test that refuted it.      |
 +------------------------------------+--------------------------+----------------------------------------------------------------------------+
 | **4.5** You have explained your    | Whole report;            | The body is written to be followed without a background in statistics,     |
 | project clearly, in writing or     |                          | with one everyday comparison for each hard idea and no more. Jargon is     |

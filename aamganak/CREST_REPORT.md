@@ -477,18 +477,28 @@ not use it on two viewpoints unless the detector is known to be good.
 *Figure 8. The comparison under three detectors. The estimator's advantage holds everywhere except
 the poor detector at two viewpoints.*
 
-### 5.7 The intervals, before and after calibration
+### 5.7 The intervals, and a correction that did not work
 
 Raw prediction intervals from the parametric bootstrap cover 88% of trees at two viewpoints against
 a claimed 90%, which is close, and then drift upward to 100% at four viewpoints and above, which is
-conservative. Rescaling by a multiplier fitted on the twenty calibration trees brings the middle of
-the range to where it claims to be, 90% at three viewpoints and 95% at six, and narrows the interval
-from 23% of the count to 17% at three viewpoints and from 17% to 6% at twelve.
+conservative rather than wrong but is still not what the interval says.
 
-It does not work everywhere. At four viewpoints the correction overshoots and coverage falls to 80%,
-below what it claims, and at two viewpoints it pushes an already reasonable 88% up to 98%. Twenty
-trees are too few to fit a stable multiplier, and the honest reading is that the calibration works in
-the middle of the range and is noisy at its edges. Both series are reported for that reason.
+I rescaled them by a multiplier fitted on fifty trees held back for that purpose, and the result is
+mixed. At three, six and twelve viewpoints the coverage lands where it should, at 90%, 93% and 92%,
+and the interval narrows from 23% of the count to 17% at three viewpoints and from 17% to 5% at
+twelve. At four viewpoints the correction overshoots and coverage falls to 80%, below what it claims.
+At two viewpoints it takes an already reasonable 88% and pushes it to 100%.
+
+My first explanation was that the multiplier was fitted on too few trees. That turned out to be
+wrong, and the way I know is that I tested it: tripling the calibration set from twenty trees to
+fifty moved the multipliers by almost nothing, from 1.259 to 1.309 at two viewpoints and from 0.511
+to 0.509 at four. A quantity that does not move when its sample triples is not the noisy part. The
+correction is the wrong shape rather than imprecise, because one number per viewpoint count cannot
+repair an interval that is miscalibrated by different amounts on different trees. Making it depend on
+how much of each canopy went unobserved is the next thing to try.
+
+Both series are reported for that reason, and a grower using this today should use the uncalibrated
+interval, which is conservative everywhere and close to correct at the protocols that matter.
 
 ![Figure 7](artifacts/figs/fig7_interval_coverage.png)
 

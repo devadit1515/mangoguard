@@ -299,3 +299,32 @@ below what the interval claims. At two viewpoints it pushes an already acceptabl
 **Status:** open, and reported as measured. Both the uncalibrated and the calibrated series appear in
 the report so the size and the instability of the correction are both visible. The fix is more
 calibration trees, which costs only compute.
+
+---
+
+## 6e — the diagnosis in 6d was wrong, and testing it is how I know
+
+**Found:** 04/09/2026, by acting on entry 6d.
+
+**What 6d claimed.** That the interval calibration was unstable because twenty trees are too few to
+fit the multiplier, and that the fix was more calibration trees, costing only compute.
+
+**What I did.** Gave the interval calibration its own set of fifty trees, drawn separately from the
+twenty that fit the multiplier baseline, and re-ran.
+
+**What happened.** Almost nothing. The fitted multipliers moved from 1.259 to 1.309 at two
+viewpoints, 0.769 to 0.764 at three, 0.511 to 0.509 at four, 0.539 to 0.493 at six and 0.375 to
+0.313 at twelve. Coverage at three, six and twelve viewpoints sits acceptably at 0.90, 0.93 and 0.92.
+Coverage at four viewpoints is still 0.80, below what the interval claims, and at two viewpoints the
+correction still pushes an already reasonable 0.883 up to 1.000.
+
+**The real diagnosis.** The multipliers barely moved when the sample tripled, which is what a
+well-determined quantity does. So they were never the noisy part, and entry 6d was wrong about the
+cause. The problem is the shape of the correction rather than its precision: one scalar per viewpoint
+count cannot repair an interval whose miscalibration differs from tree to tree within that viewpoint
+count. At two viewpoints the raw interval is close to right on average and the scalar makes it worse.
+
+**Status:** open, with a better-founded next step. The correction needs to depend on the tree, most
+likely on how much of the canopy went unobserved, rather than on viewpoint count alone. Recorded
+here rather than quietly dropped, because a wrong diagnosis that was tested and refuted is worth more
+in the record than one that was never checked.

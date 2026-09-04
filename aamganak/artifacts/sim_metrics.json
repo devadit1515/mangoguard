@@ -2,6 +2,7 @@
   "meta": {
     "seed": 20260903,
     "n_calibration_trees": 20,
+    "n_interval_calibration_trees": 50,
     "n_test_trees": 60,
     "view_counts": [
       1,
@@ -558,9 +559,9 @@
       },
       "calibrated": {
         "nominal": 0.9,
-        "width_multiplier": 1.259,
-        "achieved": 0.983,
-        "mean_width_pct_of_truth": 46.12,
+        "width_multiplier": 1.309,
+        "achieved": 1.0,
+        "mean_width_pct_of_truth": 47.95,
         "n_trees": 60
       }
     },
@@ -574,9 +575,9 @@
       },
       "calibrated": {
         "nominal": 0.9,
-        "width_multiplier": 0.769,
+        "width_multiplier": 0.764,
         "achieved": 0.9,
-        "mean_width_pct_of_truth": 17.41,
+        "mean_width_pct_of_truth": 17.28,
         "n_trees": 60
       }
     },
@@ -590,9 +591,9 @@
       },
       "calibrated": {
         "nominal": 0.9,
-        "width_multiplier": 0.511,
+        "width_multiplier": 0.509,
         "achieved": 0.8,
-        "mean_width_pct_of_truth": 10.06,
+        "mean_width_pct_of_truth": 10.03,
         "n_trees": 60
       }
     },
@@ -606,9 +607,9 @@
       },
       "calibrated": {
         "nominal": 0.9,
-        "width_multiplier": 0.539,
-        "achieved": 0.95,
-        "mean_width_pct_of_truth": 9.48,
+        "width_multiplier": 0.493,
+        "achieved": 0.933,
+        "mean_width_pct_of_truth": 8.66,
         "n_trees": 60
       }
     },
@@ -622,9 +623,9 @@
       },
       "calibrated": {
         "nominal": 0.9,
-        "width_multiplier": 0.375,
-        "achieved": 0.933,
-        "mean_width_pct_of_truth": 6.41,
+        "width_multiplier": 0.313,
+        "achieved": 0.917,
+        "mean_width_pct_of_truth": 5.34,
         "n_trees": 60
       }
     }
