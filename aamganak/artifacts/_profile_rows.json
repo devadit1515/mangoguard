@@ -1,0 +1,217 @@
+{
+ "header": [
+  [
+   "Criteria"
+  ],
+  [
+   "Where do you show this in your report or project record?"
+  ],
+  [
+   "Your notes to the assessor (optional)"
+  ]
+ ],
+ "rows": [
+  [
+   [
+    "**1.1** You have set a clear aim for the project and have broken it down into smaller objectives"
+   ],
+   [
+    "Section 1.1, page TBC;",
+    "Section 1.2, page TBC;",
+    "Section 5.7, page TBC"
+   ],
+   [
+    "The aim is a single sentence in Section 1.1, broken immediately below into five numbered objectives, each ending in a \"Done when\" test that can be checked rather than judged.",
+    "Section 5.7 returns to all five against the results and says plainly which is not met: the fifth, validation against picked and counted trees, cannot be met until the fruit exists. Four are met and reported."
+   ]
+  ],
+  [
+   [
+    "**1.2** You have explained a wider purpose for the project"
+   ],
+   [
+    "Section 1 opening, page TBC;",
+    "Section 6.1, page TBC"
+   ],
+   [
+    "The report opens with the grower in Ratnagiri my family buys from, who hired eleven pickers for a job that needed six because the only crop estimate available to him was walking the rows and looking.",
+    "The scale follows: India grows on the order of 22 million tonnes of mango a year and about 85% of it comes from holdings under two hectares, so the fruit count per tree is the number everything else is planned around and almost nobody has it. Section 2 explains why the existing repair, a correction factor fitted per orchard, does not solve it."
+   ]
+  ],
+  [
+   [
+    "**1.3** You have identified a range of approaches to the project"
+   ],
+   [
+    "Section 3.1, page TBC"
+   ],
+   [
+    "Four genuinely different approaches are compared in a trade-off table: a person walking the rows and counting; detecting fruit in images and multiplying by a fitted constant; reconstructing the tree in three dimensions and counting what is visible in the reconstruction; and reconstructing, then estimating abundance statistically.",
+    "Each carries the reason it was eliminated. Manual counting is the problem rather than a solution. Plain three-dimensional counting still counts only what was seen. The fitted multiplier was not discarded but kept as the measured baseline, because it is what published work actually does."
+   ]
+  ],
+  [
+   [
+    "**1.4** You have described your plan for the project and why you chose that approach"
+   ],
+   [
+    "Section 3, page TBC;",
+    "Appendix B, page TBC"
+   ],
+   [
+    "Section 3 sets out the design and the reason for it: the chosen route is the only one that uses information the images already contain, since a fruit seen from three viewpoints out of twelve tells you something a fruit seen from all twelve does not, and counting throws that away.",
+    "Appendix B gives the seed, the population parameters, and the two commands that regenerate every number and every figure, so the method can be checked rather than believed.",
+    "**Outstanding: the repository must be made public before submission, since the report cites it.**"
+   ]
+  ],
+  [
+   [
+    "**1.5** You have planned and organized your time well"
+   ],
+   [
+    "Section 1.3, page TBC"
+   ],
+   [
+    "**Not yet met.** The timeline table in Section 1.3 is real and its dates come from the commit history rather than from memory, but the project is young and there is no record yet of a plan meeting reality and having to be replanned. Stages that have not happened are marked as planned rather than presented as done.",
+    "This criterion is answered by the work running through to the orchard season in 2027, and the table is built to receive that. I would rather show it empty than fill it with a schedule I did not follow."
+   ]
+  ],
+  [
+   [
+    "**2.1** You have made good use of the materials and people available"
+   ],
+   [
+    "Appendix B, page TBC"
+   ],
+   [
+    "**Partly met.** The materials side is complete: the code, the fixed seed, the exact commands that reproduce every number, the parameter ranges and their physical justification, and the published field measurements the simulator is checked against.",
+    "**Outstanding: the people side is thin.** The cooperating grower whose account of hiring pickers set the problem, and whose orchard will host the 2027 campaign, should be named as a resource rather than appearing only as motivation. Any course, documentation or forum genuinely relied on belongs here too."
+   ]
+  ],
+  [
+   [
+    "**2.2** You have researched the background to the project and acknowledged your sources appropriately"
+   ],
+   [
+    "Section 2, page TBC;",
+    "References, page TBC"
+   ],
+   [
+    "Section 2 is built as an argument rather than a list. Detection is solved, with a published mango detector reaching an F1 of 0.968. The gap between what is seen and what is there is large and has been measured against actual harvest counts, at 40.2% of fruit recovered from dual-view imaging. The field repairs that gap with a constant it knows is not constant, ranging from 1.05 to 2.43 across orchards, and says so itself. A body of statistics for populations that hide already exists in ecology. The gap sits where those four meet.",
+    "Thirteen references, every one cited in the text and every citation appearing in the list. **Outstanding: seven entries need their bibliographic details checked against the originals, which the report states rather than hides.**"
+   ]
+  ],
+  [
+   [
+    "**3.1** You have made logical conclusions and explained the implications for the wider world"
+   ],
+   [
+    "Section 6.1, page TBC;",
+    "Section 6.3, page TBC;",
+    "Section 6.5, page TBC"
+   ],
+   [
+    "Section 6.1 answers the aim directly and with numbers, then bounds itself: the result is measured on simulated trees that the report itself shows to be easier than a real hedgerow.",
+    "The implication for a grower is specific. The method needs no harvested trees to calibrate against, and a correction factor has to be bought with a harvest, so this removes a cost rather than only an error.",
+    "Section 6.3 declines to set my simulated figure beside the published field figure of 11.5% per-tree error and explains why the two are not comparable. Refusing a flattering comparison is itself a conclusion."
+   ]
+  ],
+  [
+   [
+    "**3.2** You have explained how your actions and decisions affected the project's outcome"
+   ],
+   [
+    "Section 6.2, page TBC;",
+    "Section 4, page TBC"
+   ],
+   [
+    "Two decisions did most of the work, and both are traced to a number.",
+    "Replacing a smooth canopy-depth proxy with the reconstruction's measurement of unobserved volume roughly halved the error at two viewpoints. Separating the detector's hit rate from the number of chances it had made both quantities identifiable; the estimator that does not separate them reaches 28.3% error at two viewpoints where the one that does reaches 2.3%.",
+    "Section 4 traces the opposite direction too: my first simulator flattered every result, and correcting it changed what the project was about."
+   ]
+  ],
+  [
+   [
+    "**3.3** You have explained what you have learnt and reflected on what you could improve"
+   ],
+   [
+    "Section 8, page TBC"
+   ],
+   [
+    "Section 8 is specific rather than general. My simulated trees had no trunks for two days and every internal check passed, because the checks and the simulator shared the same assumptions. What caught it was a number from somebody else's harvested orchard.",
+    "The change I would make is to go to the published field measurements before building rather than after. The figure that exposed the missing wood was available the whole time.",
+    "Next steps are given with what each one needs, and the one that matters is constrained by a fruiting season rather than by effort."
+   ]
+  ],
+  [
+   [
+    "**4.1** You have shown understanding of the science behind your project, appropriate to the Award level"
+   ],
+   [
+    "Section 3.2, page TBC;",
+    "Section 3.3, page TBC;",
+    "Appendix C, page TBC"
+   ],
+   [
+    "The body explains in plain terms why the pattern of re-sightings carries information about fruit that were never seen, and why that reasoning has a blind spot: a fruit with no chance of being seen from anywhere leaves no trace at all, so it is absent rather than under-represented, and no statistics recover it.",
+    "Appendix C sets out the transmittance law and why discretising the canopy leaves it unchanged, the clumping treatment and why scattered-leaf theory gets gap statistics wrong without it, the zero-truncated likelihood and why the truncation is necessary, and the reciprocal-probability total. Each is explained as why it is the right tool rather than named and cited."
+   ]
+  ],
+  [
+   [
+    "**4.2** You have made decisions to direct the project, taking account of ethical and safety issues"
+   ],
+   [
+    "Section 7, page TBC"
+   ],
+   [
+    "Decisions rather than disclaimers. Which direction to err in, since an over-estimate means pickers standing about and an under-estimate means fruit left past ripeness, and the intervals are currently conservative for that reason.",
+    "Whose harvest is destroyed to obtain ground truth, and on what terms, since the 2027 campaign requires picking a cooperating grower's trees.",
+    "A fairness finding measured from my own results: accuracy is worst on dense unpruned canopies, and those belong disproportionately to growers with least capital to spend on management, so a tool that worked best on well-managed orchards would widen a gap it claims to close. Accuracy is therefore reported by canopy density rather than as a single average that would hide it.",
+    "Dual use is named. A buyer holding this estimate while the grower does not is worse for the grower than the situation today."
+   ]
+  ],
+  [
+   [
+    "**4.3** You have shown creative thinking"
+   ],
+   [
+    "Section 6.4, page TBC"
+   ],
+   [
+    "Two decisions are named as choices rather than steps.",
+    "Treating fruit counting as a wildlife abundance problem. The methods ecologists use for animals that hide map onto a camera walked around a tree without forcing, because both produce repeated survey occasions of one population. I have not found the transfer made before.",
+    "Using a three-dimensional reconstruction for what it measures rather than what it appears to measure. A reconstruction looks like a tool for finding where things are; its more useful output here is a map of where the cameras could not look, which is a statement about absence."
+   ]
+  ],
+  [
+   [
+    "**4.4** You have identified and overcome problems successfully"
+   ],
+   [
+    "Section 4.1, page TBC;",
+    "Section 4.2, page TBC;",
+    "Section 4.3, page TBC;",
+    "full log in the repository"
+   ],
+   [
+    "Three problems are given in full, with cause, fix and verification.",
+    "Occlusion drawn independently for each viewpoint, which treated foliage as if it rearranged itself between camera positions and made every estimator look adequate. Ray marching that stepped over the very cells it was meant to test. And a simulator easier than any real orchard, caught only by comparing it against published harvest counts, where the diagnosis was that leaf density could not be the answer because closing the gap that way would have needed a leaf area index above 20 against a real 3 to 6.",
+    "A fourth is recorded but is not a defect in the code: the corrected simulator contradicted the premise the project began with, and I narrowed the aim rather than adjusting the simulator to rescue it. The full log of ten entries, including two still open, is in the repository."
+   ]
+  ],
+  [
+   [
+    "**4.5** You have explained your project clearly, in writing or conversation"
+   ],
+   [
+    "Whole report;",
+    "Appendix A, page TBC"
+   ],
+   [
+    "The body is written to be followed without a background in statistics, with one everyday comparison for each hard idea and no more. Jargon is expanded at first use and the glossary in Appendix A carries the definitions.",
+    "All the mathematics is quarantined in Appendix C, and the argument never depends on it. Seven figures, each captioned and referred to before it appears."
+   ]
+  ]
+ ]
+}
