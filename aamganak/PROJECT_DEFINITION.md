@@ -172,3 +172,33 @@ protocol than a person walking around a free-standing tree. Their per-tree error
 is therefore not comparable with any simulated figure here and must not be set beside one.
 The like-for-like comparison is the fitted multiplier scored on identical simulated trees.
 The comparable comparison waits for picked and counted trees in 2027.
+
+### 04/09/2026 — the pre-registered success conditions, judged
+
+Recorded against the conditions as written on 03/09/2026, not as I would write them now.
+
+**S1, the visibility model.** Met. The transmittance model reproduces its closed form, checked in the
+test suite. Simulated fruit-found fractions bracket both published field figures, 37% at one viewpoint
+against 40.2% and 61% at two against 62.3%, and the correction factors the simulated trees demand run
+from 2.99 to 1.04 against the 1.05 to 2.43 measured across real orchards.
+
+**S2, at least 30% lower error than the fitted multiplier across canopy densities.** Met at three
+viewpoints and above. On open canopies the estimator is 60% lower, on medium 74%, on dense 35%. It is
+not met at two viewpoints, where the margin falls to 15%, and it reverses entirely on two viewpoints
+with a poor detector, where the multiplier is the better choice. The condition did not anticipate that
+the answer would depend on viewpoint count, and the honest verdict is met over most of the range with
+a named exception rather than met.
+
+**S3, 90% intervals containing the truth on at least 85% of trees.** Met by the uncalibrated
+intervals, which cover 88% at two viewpoints and more above. The calibrated intervals meet it at
+three, six and twelve viewpoints and fail it at four, covering 80%. Twenty calibration trees are too
+few for a stable multiplier. Both series are reported.
+
+**S4, the advantage is attributable.** Met. Replacing the reconstruction's measured observability with
+the smooth canopy-depth proxy raises the error from 9.5% to 21.6% at two viewpoints and from 3.5% to
+4.9% at three, so the gain comes from the mechanism claimed.
+
+**S5, validation on real trees.** Not met and not attemptable before the fruiting season.
+
+Three of the four testable conditions are met outright. S2 is met over most of its range and fails at
+the edge, which the report states rather than averaging away.

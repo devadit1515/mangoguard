@@ -27,9 +27,10 @@ hidden behind leaves, limbs and other fruit, which published work corrects with 
 fitted per orchard. I built a canopy simulator whose fruit count is known by construction, and an
 estimator that treats each camera position as a survey occasion and uses the reconstructed canopy
 to measure the volume no camera could see into. On sixty simulated trees the estimator reached a
-mean absolute error of 1.5% in total count from three viewpoints, against 3.5% for the fitted
-multiplier and 8.1% for counting what is visible. Three viewpoints with it were more accurate than
-twelve without. The measurement that would confirm this on real fruit is a harvest away.
+mean absolute error of 3.5% in total count from three viewpoints, against 7.9% for the fitted
+multiplier and 24.5% for counting what is found. Three viewpoints with it matched twelve without.
+It fails in one specific place, on two viewpoints with a poor detector, where a blunt constant
+beats it. The measurement that would confirm any of this on real fruit is a harvest away.
 
 ---
 
@@ -309,9 +310,11 @@ their 62%, so the simulator was still easier than the field.
 
 The rest of that gap closed when detection stopped being a yes or no. Once recall depended on how
 much of a fruit was showing, sweeping the detector's ceiling and its threshold found a setting that
-reproduces both published figures at once: 35% of fruit detected from one viewpoint against their
-40.2% from dual view, and 62% from two viewpoints against their 62.3% from video tracking. Matching
-both from a single setting is closer agreement than I expected.
+reproduces both published figures at once: 37% of fruit found from one viewpoint against their
+40.2% from dual view, and 61% from two viewpoints against their 62.3% from video tracking. The
+correction factors my trees then demand, from 2.99 at one viewpoint to 1.04 at twelve, span the
+1.05 to 2.43 measured across real orchards. Matching three separate published quantities from one
+setting is closer agreement than I expected.
 
 I am reporting that as a calibration of the whole pipeline rather than as a measurement of a
 detector, because the two are not the same thing. Their figure counts detections against a harvest,
@@ -346,26 +349,39 @@ trees. No number here was measured on a real tree.
 
 ### 5.1 How much a camera misses
 
-From a single viewpoint, 40% of fruit are never seen. From two, 15%. From twelve, 2%. Counting what is
-visible is therefore 43.1% low at one viewpoint and 2.1% low at twelve, which is the whole shape of the
-problem in two numbers.
+From a single viewpoint, 24% of fruit have no clear line of sight from anywhere, and once the
+detector's own misses are added only 37% are found at all. Two viewpoints find 61%, three find 76%,
+and twelve find 97%. Counting what is found is therefore 63.2% low at one viewpoint and 3.5% low at
+twelve, which is the shape of the problem in two numbers.
+
+A second check falls out of this. The correction factor needed to repair the visible count, fitted
+the way the field fits it, runs from 2.99 at one viewpoint down to 1.04 at twelve. Published factors
+measured across real orchards run from 1.05 to 2.43. My simulated trees demand corrections of the
+same size as real ones, which is reassuring about the trees rather than about the estimator.
+
+![Figure 1](artifacts/figs/fig1_visibility_vs_views.png)
+
+*Figure 1. Fruit found and fruit never visible, against viewpoint count, with the two published
+field measurements marked.*
 
 ### 5.2 Accuracy against effort
 
 | Viewpoints | Count what is seen | Fitted multiplier | Capture-recapture | **Reconstruction** |
 |---|---|---|---|---|
-| 1 | 43.1% | 14.2% | not estimable | not estimable |
-| 2 | 17.7% | 6.2% | 6.4% | **2.3%** |
-| 3 | 8.1% | 3.5% | 1.5% | **1.5%** |
-| 4 | 5.4% | 2.3% | 2.1% | **1.2%** |
-| 6 | 2.9% | 1.4% | 2.3% | **0.7%** |
-| 12 | 2.1% | 1.2% | 2.1% | **0.9%** |
+| 1 | 63.2% | 18.3% | not estimable | not estimable |
+| 2 | 38.9% | 11.1% | 15.9% | **9.5%** |
+| 3 | 24.5% | 7.9% | 3.8% | **3.5%** |
+| 4 | 17.3% | 6.4% | 3.4% | **2.9%** |
+| 6 | 8.9% | 3.8% | 3.1% | **1.8%** |
+| 12 | 3.5% | 1.9% | 3.0% | **1.2%** |
 
 *Mean absolute error in total fruit count.*
 
-The reconstruction estimator is the most accurate at every viewpoint count where it is defined. At
-two viewpoints it is 2.7 times more accurate than the fitted multiplier, and at six it is nearly twice as
-accurate.
+The reconstruction estimator is the most accurate at every viewpoint count where it is defined. Its
+margin over the fitted multiplier is largest in the middle of the range, at 2.3 times better on
+three viewpoints and 2.1 times on six, and narrows at both ends. At two viewpoints it is only 1.2
+times better, because the detection histories are then too short to say much. At twelve there is
+little left hidden for any method to recover.
 
 ![Figure 2](artifacts/figs/fig2_accuracy_vs_views.png)
 
@@ -385,9 +401,10 @@ agreement.*
 
 ### 5.3 The same accuracy for less walking
 
-Plain counting at twelve viewpoints reaches 2.1%. The reconstruction estimator reaches 1.5% at three
-viewpoints, so three viewpoints with it are more accurate than twelve without. For a grower with two
-hundred trees that is the difference between a morning and a day.
+Plain counting at twelve viewpoints reaches 3.5%. The reconstruction estimator reaches 3.5% at three
+viewpoints and 2.9% at four, so three viewpoints with it match twelve without, and four beat them.
+The fitted multiplier never gets there: at twelve viewpoints it reaches 1.9%, but it needs all twelve
+to do it. For a grower with two hundred trees that is the difference between a morning and a day.
 
 ![Figure 3](artifacts/figs/fig3_effort_saving.png)
 
@@ -399,49 +416,82 @@ From one viewpoint every observed fruit has been seen exactly once, so the sight
 single point and the detection probability is not identified. My first version returned numbers
 anyway, with errors of 331% and, for one estimator, 6577%. The estimators now refuse. An estimator
 that declines is more useful than one that guesses, and the refusal is itself a result: a single
-photograph cannot support this family of methods at all.
+photograph cannot support this family of methods at all, and the only thing available there is a
+correction factor of about three, bought with a harvest.
 
 ### 5.5 Where the correction earns its keep
 
-| Canopy | Viewpoints | Visible | Count what is seen | Fitted multiplier | Reconstruction |
+| Canopy | Viewpoints | Found | Count what is seen | Fitted multiplier | Reconstruction |
 |---|---|---|---|---|---|
-| Dense | 2 | 79% | 21.4% | 6.7% | **2.5%** |
-| Dense | 3 | 90% | 10.3% | 2.9% | **2.1%** |
-| Dense | 12 | 97% | 2.7% | 1.0% | **0.9%** |
+| Dense | 2 | 57% | 43.3% | 11.3% | **10.2%** |
+| Dense | 3 | 73% | 26.6% | 7.0% | **4.5%** |
+| Dense | 12 | 95% | 4.8% | 1.9% | **1.4%** |
+| Open | 3 | 78% | 22.2% | 9.4% | **3.8%** |
+| Open | 12 | 98% | 2.3% | 2.3% | **1.0%** |
 
-On dense canopies at two viewpoints the estimator is 2.7 times more accurate than the multiplier. As
-the canopy opens and the viewpoints multiply, the advantage narrows, which is what should happen: when
-almost nothing is hidden there is almost nothing to recover.
+The advantage holds across canopy density rather than depending on it. What changes with density is
+how much there is to recover: a dense canopy at two viewpoints hides 43% of its crop from a plain
+count, an open one at twelve hides 2%.
 
 ![Figure 4](artifacts/figs/fig4_density_bands.png)
 
 *Figure 4. Error by canopy density and viewpoint count.*
 
-### 5.6 The intervals cover more than they claim
+### 5.6 The estimator depends on the detector, and there is a point where it fails
 
-Nominal 90% prediction intervals contained the true count on 98% of trees at two viewpoints and 100%
-above that, at a width of 17% to 19% of the count. They are conservative rather than
-under-confident, which is the safer direction for someone deciding how many pickers to hire, and it
-is still a miscalibration. An earlier version resampled the detected fruit and covered barely half of
-what it claimed, because resampling fruit varies which fruit a tree happened to grow and almost
-nothing else, while the uncertainty that dominates is in the fitted detection rate.
+The detector is the one part of the pipeline this project does not build, so the conclusion is
+re-run under a better and a worse one. The result is a boundary rather than a reassurance.
 
-I have not narrowed the intervals to hit 90%, because the only trees available to narrow them against
-are the trees the estimator is scored on, and fitting the interval to the test set would make the
-coverage figure meaningless. Calibrating width on a separate set is the next piece of work.
+| Detector | Viewpoints | Found | Count what is seen | Fitted multiplier | Reconstruction |
+|---|---|---|---|---|---|
+| Calibrated | 2 | 60% | 40.5% | 11.0% | **8.0%** |
+| Calibrated | 3 | 74% | 26.1% | 8.7% | **3.8%** |
+| Calibrated | 6 | 91% | 9.1% | 2.4% | **1.8%** |
+| Better | 2 | 82% | 17.9% | 6.1% | **3.4%** |
+| Better | 3 | 92% | 8.3% | 3.5% | **1.7%** |
+| Worse | 2 | 41% | 58.9% | **12.5%** | 21.9% |
+| Worse | 3 | 55% | 45.5% | 11.9% | **7.3%** |
+| Worse | 6 | 78% | 21.7% | 5.2% | **3.4%** |
+
+With a poor detector and only two viewpoints the estimator loses, and loses badly: 21.9% against the
+multiplier's 12.5%. That combination leaves it fitting a detection model to histories that are both
+short and mostly empty, and a wrong model applied confidently is worse than a blunt constant applied
+cautiously. Three viewpoints are enough to recover the advantage even with the poor detector, and
+six restore it fully.
+
+This is the practical limit of the method as it stands, and it is a specific and checkable one: do
+not use it on two viewpoints unless the detector is known to be good.
+
+![Figure 8](artifacts/figs/fig8_detector_sensitivity.png)
+
+*Figure 8. The comparison under three detectors. The estimator's advantage holds everywhere except
+the poor detector at two viewpoints.*
+
+### 5.7 The intervals, before and after calibration
+
+Raw prediction intervals from the parametric bootstrap cover 88% of trees at two viewpoints against
+a claimed 90%, which is close, and then drift upward to 100% at four viewpoints and above, which is
+conservative. Rescaling by a multiplier fitted on the twenty calibration trees brings the middle of
+the range to where it claims to be, 90% at three viewpoints and 95% at six, and narrows the interval
+from 23% of the count to 17% at three viewpoints and from 17% to 6% at twelve.
+
+It does not work everywhere. At four viewpoints the correction overshoots and coverage falls to 80%,
+below what it claims, and at two viewpoints it pushes an already reasonable 88% up to 98%. Twenty
+trees are too few to fit a stable multiplier, and the honest reading is that the calibration works in
+the middle of the range and is noisy at its edges. Both series are reported for that reason.
 
 ![Figure 7](artifacts/figs/fig7_interval_coverage.png)
 
-*Figure 7. Coverage achieved against coverage claimed, with interval width.*
+*Figure 7. Coverage and width, before and after calibration, against the 90% claimed.*
 
-### 5.7 The objectives, revisited
+### 5.8 The objectives, revisited
 
 The simulator reproduces the transmittance law it is built from, checked against the closed form in
-the test suite, and its one-viewpoint visible fraction brackets the published field measurement,
-though its two-viewpoint figure remains optimistic. The estimator returns a total and an interval.
-Using the reconstruction beats the smooth canopy-depth proxy it replaced at every viewpoint count,
-by roughly a factor of two at two viewpoints. Every method was scored on identical trees from
-identical detections.
+the test suite. Its fruit-found fractions now bracket both published field figures, and the
+correction factors it demands span the range measured across real orchards. The estimator returns a
+total and an interval. Using the reconstruction beats the smooth canopy-depth proxy it replaced at
+every viewpoint count, by more than a factor of two at two viewpoints. Every method was scored on
+identical trees from identical detections.
 
 The fifth objective, validation against picked and counted trees, is not met. It cannot be met
 before the fruit exists.
@@ -453,9 +503,13 @@ before the fruit exists.
 ### 6.1 The answer to the question I asked
 
 The hidden fruit can be estimated from the images themselves. On simulated trees the estimate is
-between two and three times more accurate than the fitted multiplier the field uses, and needs no
-harvested trees to calibrate against, which is the practical difference: a multiplier has to be
+about twice as accurate as the fitted multiplier the field uses across most of the range, and needs
+no harvested trees to calibrate against, which is the practical difference: a multiplier has to be
 bought with a harvest, and this does not.
+
+It is not uniformly better. On two viewpoints with a poor detector the multiplier wins, and by a
+wide margin. The method needs enough sightings to fit a detection model, and where it does not have
+them a confident wrong model is worse than a blunt constant.
 
 The claim is bounded in a specific way. It is measured on simulated trees whose occlusion the
 previous section shows to be milder than a real hedgerow. It is not yet a claim about Alphonso.
@@ -469,8 +523,8 @@ capture-recapture. Replacing it roughly halved the error at two viewpoints.
 
 The second was separating the detector's hit rate from the number of chances it had. Tangled
 together they are not identifiable; split between the geometry and the detection record they both
-are. Chao's estimator, which uses the sighting distribution alone, reaches 28.3% error at two
-viewpoints where the split estimator reaches 2.3%.
+are. Chao's estimator, which uses the sighting distribution alone, reaches 68.2% error at two
+viewpoints where the split estimator reaches 9.5%.
 
 ### 6.3 Where it sits against the field
 
@@ -501,11 +555,20 @@ than presence.
 
 ### 6.5 Limitations
 
-The results are simulated. The simulator is easier than a hedgerow, by an amount Section 4.3
-quantifies. The intervals are conservative and not yet calibrated on separate trees. Fruit detection
-itself is assumed rather than performed, at a fixed reliability of 0.95, and a real detector on real
-images at speed will do worse. Fruit positions are assumed recoverable in three dimensions, which
-photogrammetry does under good conditions and less well in wind or poor light.
+The results are simulated. The simulator is calibrated against published field measurements rather
+than validated against my own, and it represents a free-standing tree scanned on foot rather than a
+hedgerow imaged from a vehicle.
+
+The intervals are calibrated on twenty trees, which is too few to be stable, and the correction
+misses at two of the five viewpoint counts.
+
+Fruit detection is modelled rather than performed. The model is anchored to published detector
+performance, and the conclusion is checked against a better and a worse detector, but no detector
+was run on an image in this work.
+
+Fruit positions are assumed recoverable in three dimensions, which photogrammetry does under good
+conditions and less well in wind or poor light. That assumption is untested here and is the one I
+would attack first.
 
 ---
 

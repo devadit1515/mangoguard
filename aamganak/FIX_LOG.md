@@ -261,3 +261,41 @@ tuning it.
 
 **Verified:** both the uncalibrated and calibrated coverage are reported, so the size of the
 correction is visible rather than hidden.
+
+---
+
+## 9 — Where the method actually fails, found by testing it against a worse detector
+
+**Found:** 04/09/2026, from the detector sensitivity analysis added under entry 8.
+
+**Symptom:** on two viewpoints with a poor detector, ceiling 0.80 and recall halving at 0.95 showing,
+the reconstruction estimator reaches 21.9% error against the fitted multiplier's 12.5%. It is not
+merely worse; it is worse by a wide margin, and it is the only setting tested where it loses.
+
+**Cause:** with two viewpoints and a detector that finds only 41% of fruit, the detection histories are
+both short and mostly empty. The estimator fits a detection model to them and then extrapolates
+confidently from it. A wrong model applied with confidence is worse than a blunt constant applied
+cautiously, which is what the multiplier is.
+
+**Not fixed, reported.** Three viewpoints recover the advantage even with that detector, and six restore
+it fully, so the boundary is specific and checkable: do not use this on two viewpoints unless the
+detector is known to be good. Publishing the boundary is more useful than tuning until it disappears,
+and it would not have been found without deliberately testing against a detector worse than the one the
+calibration chose.
+
+---
+
+## 6d — the interval calibration works in the middle of its range and is noisy at the edges
+
+**Found:** 04/09/2026, from the calibrated run.
+
+**Symptom:** the multiplier fitted on twenty calibration trees brings coverage to 90% at three
+viewpoints, 95% at six and 93% at twelve. At four viewpoints it overshoots and coverage falls to 80%,
+below what the interval claims. At two viewpoints it pushes an already acceptable 88% up to 98%.
+
+**Cause:** twenty trees are too few to fit a stable multiplier, and the fitted values swing from 1.26 to
+0.38 across viewpoint counts, which is more variation than the underlying uncertainty should show.
+
+**Status:** open, and reported as measured. Both the uncalibrated and the calibrated series appear in
+the report so the size and the instability of the correction are both visible. The fix is more
+calibration trees, which costs only compute.

@@ -313,27 +313,85 @@ def fig_scatter():
 
 
 def fig_intervals():
-    """What the prediction intervals actually deliver against what they claim."""
+    """What the prediction intervals deliver against what they claim, before and after.
+
+    Both series are shown because the size of the correction is part of the result. The
+    multiplier is fitted on twenty trees, which is few enough that it is noisy, and the
+    plot shows where that noise bites.
+    """
     cov = MET["interval_coverage"]
-    views = [int(k) for k in cov if cov[k]["achieved"] is not None]
-    achieved = [cov[str(v)]["achieved"] for v in views]
-    widths = [cov[str(v)]["mean_width_pct_of_truth"] for v in views]
-    fig, ax = plt.subplots(figsize=(6.0, 3.4))
-    ax.plot(views, achieved, "-o", color=GREEN, lw=2, label="coverage achieved")
-    ax.axhline(0.90, color=ORANGE, ls="--", lw=1.4, label="coverage claimed")
+    views = sorted(int(k) for k in cov)
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(9.2, 3.6))
+    for tag, colour, marker in [("uncalibrated", GREY, "s"), ("calibrated", GREEN, "o")]:
+        ax.plot(
+            views,
+            [cov[str(v)][tag]["achieved"] for v in views],
+            "-",
+            marker=marker,
+            color=colour,
+            lw=2,
+            ms=5,
+            label=tag,
+        )
+        ax2.plot(
+            views,
+            [cov[str(v)][tag]["mean_width_pct_of_truth"] for v in views],
+            "-",
+            marker=marker,
+            color=colour,
+            lw=2,
+            ms=5,
+            label=tag,
+        )
+    ax.axhline(0.90, color=ORANGE, ls="--", lw=1.4, label="claimed")
     ax.set_ylim(0.5, 1.05)
     ax.set_xticks(views)
     ax.set_xlabel("viewpoints around the tree")
     ax.set_ylabel("share of trees inside the interval")
-    ax2 = ax.twinx()
-    ax2.plot(views, widths, "-s", color=GREY, lw=1.2, ms=4, label="interval width")
+    ax.set_title("Coverage", fontsize=10)
+    ax.legend(frameon=False, fontsize=8, loc="lower right")
+    ax2.set_xticks(views)
+    ax2.set_xlabel("viewpoints around the tree")
     ax2.set_ylabel("interval width (% of true count)")
-    ax2.set_ylim(0, 30)
-    ax2.grid(visible=False)
-    lines = ax.get_lines()[:1] + [ax.get_lines()[1]] + ax2.get_lines()
-    ax.legend(lines, [ln.get_label() for ln in lines], frameon=False, fontsize=8, loc="lower right")
-    ax.set_title("The intervals cover more than they claim")
+    ax2.set_title("Width", fontsize=10)
+    ax2.legend(frameon=False, fontsize=8)
+    fig.suptitle("Prediction intervals before and after calibration", y=1.02, fontsize=11)
     save(fig, "fig7_interval_coverage.png")
+
+
+def fig_detector_sensitivity():
+    """Does the conclusion survive a different detector? Partly, and the limit is visible."""
+    sens = MET["detector_sensitivity"]
+    labels = list(sens)
+    views = ["2", "3", "6"]
+    shown = [
+        ("naive_visible_count", GREY),
+        ("fixed_multiplier", ORANGE),
+        ("reconstruction_informed", GREEN),
+    ]
+    fig, axes = plt.subplots(1, len(labels), figsize=(9.8, 3.4), sharey=True)
+    for ax, label in zip(axes, labels, strict=True):
+        d = sens[label]
+        x = np.arange(len(views))
+        width = 0.26
+        for i, (name, colour) in enumerate(shown):
+            vals = [d[v].get(name, np.nan) for v in views]
+            ax.bar(x + (i - 1) * width, vals, width, color=colour, label=LABELS[name])
+        ax.set_xticks(x, [f"{v} views" for v in views])
+        ax.set_yscale("log")
+        subtitle = "ceiling {}, half at {}".format(d["detector_ceiling"], d["half_visible"])
+        ax.set_title(label + "\n" + subtitle, fontsize=9)
+        ax.grid(axis="x", visible=False)
+    axes[0].set_ylabel("mean absolute error (%)")
+    axes[0].set_yticks([1, 2, 5, 10, 20, 50])
+    axes[0].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    axes[-1].legend(frameon=False, fontsize=8)
+    fig.suptitle(
+        "The estimator's advantage holds except with a poor detector and two viewpoints",
+        y=1.04,
+        fontsize=11,
+    )
+    save(fig, "fig8_detector_sensitivity.png")
 
 
 def main():
@@ -344,6 +402,7 @@ def main():
     fig_canopy_slice()
     fig_scatter()
     fig_intervals()
+    fig_detector_sensitivity()
     print("all figures written to", FIGS.relative_to(ROOT))
 
 
