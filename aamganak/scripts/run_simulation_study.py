@@ -34,6 +34,11 @@ from aamganak import visibility as V  # noqa: E402
 
 SEED = 20260903
 N_CAL, N_TEST = 20, 60
+# The multiplier baseline is fitted on twenty trees because that is the order a grower or a
+# research group would actually harvest to calibrate one. The interval width is a design choice
+# rather than a field cost, so it gets its own larger set: twenty proved too few and the
+# fitted multiplier swung from 1.26 to 0.38 across viewpoint counts (FIX_LOG entry 6d).
+N_INTERVAL_CAL = 50
 VIEW_COUNTS = [1, 2, 3, 4, 6, 12]
 REFERENCE_VIEWS = 12  # what a patient operator would do
 RECONSTRUCT_SAMPLES = 2500  # Monte Carlo points per tree for the carved-volume estimate
@@ -84,6 +89,7 @@ def main():
     rng = np.random.default_rng(SEED)
     cal = make_population(N_CAL, rng)
     test = make_population(N_TEST, rng)
+    interval_cal = make_population(N_INTERVAL_CAL, rng)
 
     # The field fits its multiplier per imaging protocol, so it gets one per view count.
     k_by_views = {m: E.fit_multiplier([t[m] for t in cal]) for m in VIEW_COUNTS}
@@ -152,6 +158,7 @@ def main():
         "meta": {
             "seed": SEED,
             "n_calibration_trees": N_CAL,
+            "n_interval_calibration_trees": N_INTERVAL_CAL,
             "n_test_trees": N_TEST,
             "view_counts": VIEW_COUNTS,
             "leaf_area_density_range": list(LAD_RANGE),
@@ -263,11 +270,11 @@ def main():
     # Interval coverage, at every protocol an operator might use. The first attempt
     # resampled the detected fruit and covered barely half of what it claimed; this is
     # the parametric bootstrap that replaced it (FIX_LOG entry 6).
-    # Width is calibrated on the twenty trees that fit the multiplier, and coverage is then
-    # reported on the sixty the estimator is scored on, which never inform the width.
+    # Width is calibrated on a set drawn only for that purpose, and coverage is reported on the
+    # sixty scoring trees, which never inform the width.
     coverage = {}
     for m in [v for v in VIEW_COUNTS if v >= 2]:
-        scale = E.calibrate_interval_scale([t[m] for t in cal], level=0.90, seed=SEED)
+        scale = E.calibrate_interval_scale([t[m] for t in interval_cal], level=0.90, seed=SEED)
         for tag, factor in [("uncalibrated", 1.0), ("calibrated", scale)]:
             covered, widths = [], []
             for i, scans in enumerate(test):

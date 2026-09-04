@@ -57,10 +57,11 @@ standing about. He had guessed his crop by walking the rows and looking. That gu
 pickers he hires, how much transport he books, what price he can hold out for, and what credit he
 can raise against the season. He had no way to make it a number.
 
-India grows more mango than any other country, on the order of 22 million tonnes a year, and about
-85% of that fruit comes from holdings under two hectares [7]. For a grower on that scale the fruit
-count per tree is the number that everything else is planned around, and almost none of them have
-it.
+India grows more mango than any other country, around 22 million tonnes in 2023 to 2024 [7], and
+86% of the country's farm holdings are under two hectares, working between them a little under half
+the cultivated area [14]. Most of the people growing this crop are therefore working at a scale
+where the fruit count per tree is the number everything else is planned around, and almost none of
+them have it.
 
 Machine counting of fruit looks like a solved problem, and in one narrow sense it is. The published
 MangoYOLO detector reaches an F1 score of 0.968 at finding mangoes in an orchard image [3]. The
@@ -100,21 +101,30 @@ Objectives 1 to 4 are met and are reported here. Objective 5 is the work of the 
 
 ### 1.3 How the project has run
 
-| Stage | Dates | Note |
-|---|---|---|
-| 1. Aim, objectives and success conditions fixed before any code | 3 Sep 2026 | Written down first and amended since only by appending. |
-| 2. Canopy simulator and detection model | 3 Sep 2026 | Three defects in the physics found and fixed during this stage. |
-| 3. Estimators and the viewpoint study | 3 Sep 2026 | The corrected simulator contradicted my original framing; the aim narrowed. |
-| 4. Reconstruction module and the estimator built on it | 3–4 Sep 2026 | Replaced a smooth proxy that was barely helping. |
-| 5. Calibration against published field counts | 4 Sep 2026 | Identified a missing occluder. Parameters reset to physical values. |
-| 6. Figures and this draft | 4 Sep 2026 | |
-| 7. *Planned:* detection pipeline on public orchard images | Oct–Dec 2026 | |
-| 8. *Planned:* interval calibration on held-out trees | Jan 2027 | |
-| 9. *Planned:* orchard campaign, scan then pick and count | Feb–May 2027 | Constrained by the fruiting season. |
-| 10. *Planned:* final analysis and submission | Jun–Jul 2027 | |
+This is the third attempt at the same question. I have been trying to put a number in a Konkan
+grower's hands since June, and the first two attempts are the reason this one takes the shape it
+does. Every date below comes from the commit history of the repository, which is public and can be
+checked.
 
-Stages 7 to 10 have not happened and are marked as plans. The dates for stages 1 to 6 come from the
-commit history of the repository, not from memory.
+| Stage | Dates | What happened |
+|---|---|---|
+| 1. First attempt: an advisory system assembled from public data feeds | 8-12 Jun 2026 | Connectors for mandi prices, agrometeorological bulletins, satellite vegetation indices and pest surveillance, with a first report draft. Abandoned: it combined other people's measurements and produced none of its own, so there was nothing in it I could test. |
+| 2. Second attempt: a low-cost near-infrared meter for dry matter | 22 Jun - 12 Jul 2026 | Wavelength selection on a public benchmark of 11,691 fruit, an eight-wavelength design, firmware and a build guide. The wavelength result held up. Abandoned: every claim about the instrument depended on hardware I had not built, so the central number could not be validated by me. |
+| 3. Examination period | mid-Jul - end Aug 2026 | No project work. Planned. |
+| 4. Third attempt: counting fruit a camera cannot see | 3 Sep 2026 | Aim, objectives and success conditions fixed before any code. Canopy simulator built; three defects in its physics found and fixed the same day. |
+| 5. Estimators and the viewpoint study | 3 Sep 2026 | The corrected simulator contradicted the premise I had started from, and the aim narrowed in response. |
+| 6. Reconstruction module and the estimator built on it | 3-4 Sep 2026 | Replaced a smooth proxy that was barely improving on classical methods. |
+| 7. Calibration against published field counts | 4 Sep 2026 | Identified a missing occluder and reset the canopy parameters to physical values. |
+| 8. Detector model, interval calibration, figures, this draft | 4 Sep 2026 | Found the setting where the method fails, by testing it against a worse detector. |
+| 9. *Planned:* fruit detector run on public orchard images | Oct - Dec 2026 | To replace a modelled detector with a measured one. |
+| 10. *Planned:* orchard campaign, scan then pick and count | Feb - May 2027 | Constrained by the fruiting season. Nothing can substitute for it. |
+| 11. *Planned:* final analysis and submission | Jun - Jul 2027 | |
+
+Two things are worth saying about that table rather than leaving them to be inferred. The first is
+that stages 4 to 8 are compressed into two days, which is unusual and is the direct result of the
+two attempts before them: the dataset, the evaluation discipline and the reason for caring about
+occlusion all came out of stage 2. The second is that stages 9 to 11 have not happened. They are
+marked as plans, and the work is not finished until they have.
 
 ---
 
@@ -675,8 +685,9 @@ originals, and that check is outstanding.
    finite universe', *Journal of the American Statistical Association*, 47(260), pp. 663-685.
 6. Monsi, M. and Saeki, T. (2005) 'On the factor light in plant communities and its importance for
    matter production', *Annals of Botany*, 95(3), pp. 549-567.
-7. National Horticulture Board (2023) *Horticultural Statistics at a Glance*. Ministry of Agriculture
-   and Farmers Welfare, Government of India.
+7. Ministry of Agriculture and Farmers Welfare (2024) *Final Estimates of 2022-23 and First Advance
+   Estimates of 2023-24 of Area and Production of Horticultural Crops*. Press Information Bureau,
+   Government of India.
 8. Seber, G.A.F. (1982) *The Estimation of Animal Abundance and Related Parameters*. 2nd edn.
    London: Griffin.
 9. Schaffer, B., Whiley, A.W. and Crane, J.H. (1994) 'Mango', in Schaffer, B. and Andersen, P.C.
@@ -684,15 +695,18 @@ originals, and that check is outstanding.
 10. Nilson, T. (1971) 'A theoretical analysis of the frequency of gaps in plant stands',
     *Agricultural Meteorology*, 8, pp. 25-38.
 11. Chen, J.M. and Black, T.A. (1992) 'Foliage area and architecture of plant canopies from
-    sunfleck size distributions', *Agricultural and Forest Meteorology*, 60(3), pp. 249-266.
+    sunfleck size distributions', *Agricultural and Forest Meteorology*, 60, pp. 249-266.
 12. Efron, B. and Tibshirani, R.J. (1993) *An Introduction to the Bootstrap*. New York: Chapman and
     Hall.
 13. Otis, D.L., Burnham, K.P., White, G.C. and Anderson, D.R. (1978) 'Statistical inference from
-    capture data on closed animal populations', *Wildlife Monographs*, 62, pp. 3-135.
+    capture data on closed animal populations', *Wildlife Monographs*, 62, pp. 1-135.
+14. Ministry of Agriculture and Farmers Welfare (2018) *All India Report on Agriculture Census
+    2015-16*. Government of India.
 
 > **Note on the reference list.** Entries 2, 3, 4, 5, 8 and 13 carry the argument and I have read
-> them. The rest support single technical points, and their bibliographic details need checking
-> against the originals before submission. That check is outstanding and this is a draft.
+> them. Every entry's bibliographic details have been checked against the original record. That
+> check corrected two page ranges and replaced the source behind the production and smallholding
+> figures, which had been attributed to a publication that does not carry them.
 
 ---
 
