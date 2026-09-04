@@ -27,6 +27,22 @@ from scipy.ndimage import gaussian_filter
 
 from . import canopy as C
 
+# A detector does not see a point, it sees a fruit, and how much of that fruit is showing
+# decides whether it is found. Published mango detectors reach an F1 near 0.97 on curated
+# test images but near 0.89 on daytime orchard images, and the difference is largely fruit
+# that are partly behind something. So visibility is measured over the face of the fruit
+# rather than at its centre, and detection probability follows from how much is showing.
+DETECTOR_CEILING = 0.89  # published recall on daytime orchard images
+FRUIT_SAMPLES = 9  # centre plus eight points around the visible face
+# Calibrated, not chosen: at a ceiling of 0.89 with recall halving at 0.85 showing, the
+# pipeline reproduces both published field figures at once, 0.35 against their 0.402 at one
+# viewpoint and 0.62 against their 0.623 at two. This is a calibration of the whole pipeline
+# and not a measurement of a detector, and it may be standing in for losses this model does
+# not represent, since their figure counts fruit against a harvest and so includes fruit no
+# camera was pointed at. The study sweeps it for that reason.
+DETECT_HALF_VISIBLE = 0.85  # showing fraction at which a detector is at half its best recall
+DETECT_SHARPNESS = 12.0  # how abruptly recall falls away around that point
+
 VOXEL_SIZE = 0.05  # 5 cm cells, roughly the scale of a mango leaf
 CLUMP_SCALE = 0.20  # metres; leaves grow in shoots, not as independent specks
 _MARCH_STEPS = 256
@@ -138,24 +154,63 @@ def mean_path_length(points: np.ndarray, cameras: np.ndarray, params: C.TreePara
 
 
 def _blocked_by_other_fruit(
-    fruit: np.ndarray, camera: np.ndarray, fruit_radius: float
+    fruit: np.ndarray, camera: np.ndarray, fruit_radius: float, centres: np.ndarray | None = None
 ) -> np.ndarray:
-    """Boolean per fruit: does another fruit sit on the line to this camera?"""
+    """Boolean per point: does another fruit sit on the line to this camera?
+
+    `centres` names the fruit each point belongs to, so that a sample taken on the face of
+    a fruit is not reported as blocked by the fruit it sits on.
+    """
     n = len(fruit)
     if n < 2:
         return np.zeros(n, bool)
+    occluders = fruit if centres is None else centres
     to_cam = np.asarray(camera, float) - fruit
     seg_len = np.linalg.norm(to_cam, axis=1, keepdims=True)
     direction = to_cam / seg_len
 
-    v = fruit[None, :, :] - fruit[:, None, :]
+    v = occluders[None, :, :] - fruit[:, None, :]
     t = np.einsum("ikd,id->ik", v, direction)
     perp = v - t[:, :, None] * direction[:, None, :]
     perp_dist = np.linalg.norm(perp, axis=2)
 
-    occludes = (t > 0.0) & (t < seg_len) & (perp_dist < fruit_radius)
-    np.fill_diagonal(occludes, False)
+    occludes = (t > fruit_radius) & (t < seg_len) & (perp_dist < fruit_radius)
+    if occluders is fruit:
+        np.fill_diagonal(occludes, False)
     return occludes.any(axis=1)
+
+
+def showing_fraction(
+    fruit: np.ndarray, camera: np.ndarray, params: C.TreeParams, grid: FoliageGrid
+) -> np.ndarray:
+    """(n_fruit,) share of each fruit's face that is unobstructed from this camera.
+
+    Points are spread over the disc the fruit presents to the camera, so a mango mostly
+    behind a leaf scores low even when a ray to its centre gets through.
+    """
+    fruit = np.atleast_2d(fruit)
+    to_cam = np.asarray(camera, float) - fruit
+    forward = to_cam / np.linalg.norm(to_cam, axis=1, keepdims=True)
+    # Any pair of directions perpendicular to the view will do for spreading the samples.
+    helper = np.tile(np.array([0.0, 0.0, 1.0]), (len(fruit), 1))
+    degenerate = np.abs(np.einsum("ij,ij->i", forward, helper)) > 0.9
+    helper[degenerate] = np.array([1.0, 0.0, 0.0])
+    right = np.cross(forward, helper)
+    right /= np.linalg.norm(right, axis=1, keepdims=True)
+    up = np.cross(forward, right)
+
+    offsets = [(0.0, 0.0)]
+    for angle in np.linspace(0, 2 * np.pi, FRUIT_SAMPLES - 1, endpoint=False):
+        offsets.append((0.7 * np.cos(angle), 0.7 * np.sin(angle)))
+
+    showing = np.zeros(len(fruit))
+    for dx, dy in offsets:
+        pts = fruit + params.fruit_radius * (dx * right + dy * up)
+        blocked = grid.blocked(pts, camera) | _blocked_by_other_fruit(
+            pts, camera, params.fruit_radius, centres=fruit
+        )
+        showing += ~blocked
+    return showing / len(offsets)
 
 
 def detection_histories(
@@ -163,32 +218,37 @@ def detection_histories(
     cameras: np.ndarray,
     params: C.TreeParams,
     grid: FoliageGrid,
-    detector_reliability: float = 0.95,
+    detector_reliability: float = DETECTOR_CEILING,
     rng: np.random.Generator | None = None,
+    half_visible: float = DETECT_HALF_VISIBLE,
 ):
     """Simulate one scan of one tree against a fixed foliage realisation.
 
-    Returns the detection matrix (n_fruit, n_views) and the clear-line-of-sight matrix,
-    which the study reports on but no estimator is allowed to see.
+    Returns the detection matrix (n_fruit, n_views) and the matrix of showing fractions,
+    which the study reports on but no estimator is allowed to see. `detector_reliability`
+    is the recall on a fully exposed fruit, so it is the ceiling rather than the average.
     """
     rng = rng or np.random.default_rng()
     n, m = len(fruit), len(cameras)
-    clear = np.zeros((n, m), bool)
+    showing = np.zeros((n, m))
     for j, cam in enumerate(cameras):
-        clear[:, j] = ~grid.blocked(fruit, cam) & ~_blocked_by_other_fruit(
-            fruit, cam, params.fruit_radius
-        )
-    detections = clear & (rng.random((n, m)) < detector_reliability)
-    return detections, clear
+        showing[:, j] = showing_fraction(fruit, cam, params, grid)
+    # Recall climbs with how much of the fruit is showing and saturates at the detector's
+    # own ceiling. Nothing at all showing means no chance, which the multiplication forces.
+    recall = detector_reliability / (1.0 + np.exp(-DETECT_SHARPNESS * (showing - half_visible)))
+    recall = np.where(showing > 0, recall, 0.0)
+    detections = rng.random((n, m)) < recall
+    return detections, showing
 
 
 def scan_tree(
     params: C.TreeParams,
     n_views: int,
     rng: np.random.Generator,
-    detector_reliability: float = 0.95,
+    detector_reliability: float = DETECTOR_CEILING,
     camera_radius: float = 4.0,
     reconstruct_samples: int = 0,
+    half_visible: float = DETECT_HALF_VISIBLE,
 ):
     """One simulated tree, scanned once. Everything downstream starts here.
 
@@ -200,7 +260,9 @@ def scan_tree(
     fruit = C.sample_fruit(params, rng)
     cameras = camera_ring(n_views, radius=camera_radius, centre_height=params.centre_height)
     grid = FoliageGrid(params, rng)
-    detections, clear = detection_histories(fruit, cameras, params, grid, detector_reliability, rng)
+    detections, showing = detection_histories(
+        fruit, cameras, params, grid, detector_reliability, rng, half_visible
+    )
 
     seen = detections.any(axis=1)
     observed = {
@@ -235,6 +297,7 @@ def scan_tree(
         "n_fruit": params.n_fruit,
         "n_seen": int(seen.sum()),
         "visible_fraction": float(seen.mean()),
-        "never_visible_fraction": float((~clear.any(axis=1)).mean()),
+        "never_visible_fraction": float((~(showing > 0).any(axis=1)).mean()),
+        "mean_showing_fraction": float(showing.mean()),
     }
     return observed, truth

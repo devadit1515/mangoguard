@@ -18,6 +18,7 @@ few viewpoints an estimator needs to match what naive counting achieves with man
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -36,6 +37,13 @@ N_CAL, N_TEST = 20, 60
 VIEW_COUNTS = [1, 2, 3, 4, 6, 12]
 REFERENCE_VIEWS = 12  # what a patient operator would do
 RECONSTRUCT_SAMPLES = 2500  # Monte Carlo points per tree for the carved-volume estimate
+# Detector settings to test the conclusion against. The first is the calibrated pair that
+# reproduces both published field figures; the others are a better detector and a worse one.
+DETECTOR_SETTINGS = [
+    ("calibrated", V.DETECTOR_CEILING, V.DETECT_HALF_VISIBLE),
+    ("optimistic", 0.95, 0.50),
+    ("pessimistic", 0.80, 0.95),
+]
 OUT = ROOT / "artifacts" / "sim_metrics.json"
 
 # Leaf area density, calibrated to the leaf area index a bearing mango actually carries:
@@ -192,26 +200,91 @@ def main():
             by_band[band][str(m)] = entry
     out["accuracy_by_density_and_views"] = by_band
 
+    # Does the conclusion survive a different detector? The headline comparison is re-run
+    # under each setting, on trees drawn fresh for the purpose.
+    sensitivity = {}
+    for label, q, half in DETECTOR_SETTINGS:
+        rng_s = np.random.default_rng(SEED + 99)
+        rows_s = {
+            m: {
+                n: []
+                for n in ["naive_visible_count", "fixed_multiplier", "reconstruction_informed"]
+            }
+            for m in [2, 3, 6]
+        }
+        vis_s = {m: [] for m in [2, 3, 6]}
+        cal_ratio = {m: [] for m in [2, 3, 6]}
+        pop = []
+        for _ in range(30):
+            params = random_tree(rng_s)
+            pop.append(
+                {
+                    m: V.scan_tree(
+                        params,
+                        m,
+                        rng_s,
+                        detector_reliability=q,
+                        reconstruct_samples=RECONSTRUCT_SAMPLES,
+                        half_visible=half,
+                    )
+                    for m in [2, 3, 6]
+                }
+            )
+        for scans in pop[:10]:  # first ten trees fit the multiplier, as the field fits it
+            for m in [2, 3, 6]:
+                o, tr = scans[m]
+                cal_ratio[m].append(tr["n_fruit"] / max(len(o["histories"]), 1))
+        k_s = {m: float(np.mean(cal_ratio[m])) for m in [2, 3, 6]}
+        for scans in pop[10:]:
+            for m in [2, 3, 6]:
+                o, tr = scans[m]
+                vis_s[m].append(tr["visible_fraction"])
+                rows_s[m]["naive_visible_count"].append(ape(E.naive(o), tr["n_fruit"]))
+                rows_s[m]["fixed_multiplier"].append(
+                    ape(E.fixed_multiplier(o, k_s[m]), tr["n_fruit"])
+                )
+                with contextlib.suppress(E.Unidentifiable):
+                    rows_s[m]["reconstruction_informed"].append(
+                        ape(E.reconstruction_informed(o), tr["n_fruit"])
+                    )
+        sensitivity[label] = {
+            "detector_ceiling": q,
+            "half_visible": half,
+            **{
+                str(m): {
+                    "mean_visible_fraction": round(float(np.mean(vis_s[m])), 4),
+                    **{n: round(float(np.mean(vals)), 2) for n, vals in rows_s[m].items() if vals},
+                }
+                for m in [2, 3, 6]
+            },
+        }
+    out["detector_sensitivity"] = sensitivity
+
     # Interval coverage, at every protocol an operator might use. The first attempt
     # resampled the detected fruit and covered barely half of what it claimed; this is
     # the parametric bootstrap that replaced it (FIX_LOG entry 6).
+    # Width is calibrated on the twenty trees that fit the multiplier, and coverage is then
+    # reported on the sixty the estimator is scored on, which never inform the width.
     coverage = {}
     for m in [v for v in VIEW_COUNTS if v >= 2]:
-        covered, widths = [], []
-        for i, scans in enumerate(test):
-            observed, truth = scans[m]
-            try:
-                lo, hi = E.parametric_interval(observed, n_boot=80, seed=SEED + i)
-            except E.Unidentifiable:
-                continue
-            covered.append(lo <= truth["n_fruit"] <= hi)
-            widths.append((hi - lo) / truth["n_fruit"] * 100.0)
-        coverage[str(m)] = {
-            "nominal": 0.90,
-            "achieved": round(float(np.mean(covered)), 3) if covered else None,
-            "mean_width_pct_of_truth": round(float(np.mean(widths)), 2) if widths else None,
-            "n_trees": len(covered),
-        }
+        scale = E.calibrate_interval_scale([t[m] for t in cal], level=0.90, seed=SEED)
+        for tag, factor in [("uncalibrated", 1.0), ("calibrated", scale)]:
+            covered, widths = [], []
+            for i, scans in enumerate(test):
+                observed, truth = scans[m]
+                try:
+                    lo, hi = E.parametric_interval(observed, n_boot=80, seed=SEED + i, scale=factor)
+                except E.Unidentifiable:
+                    continue
+                covered.append(lo <= truth["n_fruit"] <= hi)
+                widths.append((hi - lo) / truth["n_fruit"] * 100.0)
+            coverage.setdefault(str(m), {})[tag] = {
+                "nominal": 0.90,
+                "width_multiplier": round(float(factor), 3),
+                "achieved": round(float(np.mean(covered)), 3) if covered else None,
+                "mean_width_pct_of_truth": round(float(np.mean(widths)), 2) if widths else None,
+                "n_trees": len(covered),
+            }
     out["interval_coverage"] = coverage
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

@@ -207,3 +207,57 @@ than a small-sample artefact.
 calibrate the width on a separate set of simulated trees and then report coverage on trees
 never used for that, which is the next piece of work. Until then the report says the
 intervals are conservative and gives both the coverage and the width.
+
+---
+
+## 8 — Detection was all-or-nothing on a ray to the fruit's centre
+
+**Found:** 04/09/2026, while trying to replace the assumed detector reliability of 0.95 with
+something anchored to a measurement.
+
+**Symptom:** not a wrong number so much as an arbitrary one. A fruit was detectable if an
+unobstructed line reached its centre, at a fixed rate of 0.95, and undetectable otherwise. Two
+things are wrong with that. A mango whose centre sits behind a twig but whose body is in plain
+view is detectable, and my model said it was not. A mango showing a sliver through a gap in the
+leaves is usually missed, and my model said it was found 95 times in a hundred.
+
+**What the literature gave.** Published mango detectors report an F1 near 0.97 on a curated test
+set and near 0.89 on daytime orchard images [3]. The gap between those two figures is largely fruit
+that are partly behind something, which is the effect the model was missing entirely.
+
+**Fix:** visibility is now measured over nine points spread across the face each fruit presents to
+the camera, giving a showing fraction rather than a yes or no. Detection probability rises with
+that fraction and saturates at the detector's ceiling.
+
+**Calibration, and what it is not.** Sweeping the two parameters found that a ceiling of 0.89 with
+recall halving at 0.85 showing reproduces both published field figures at once: 0.35 of fruit
+detected from one viewpoint against their 0.402 from dual view, and 0.62 from two viewpoints
+against their 0.623 from video tracking. Matching both from one setting is better agreement than I
+expected.
+
+It is a calibration of the whole pipeline and not a measurement of a detector, and the difference
+matters. The published figure counts detections against a harvest, so it also includes fruit that
+no camera was ever pointed at, high in the tree or on the far side of the row. My cameras see the
+whole tree, so this setting may be standing in for losses the model does not represent. Reported as
+a calibrated pipeline rather than as a measured detector, and the study now runs the headline
+comparison under a better and a worse detector as well, so the conclusion can be checked against
+the setting rather than resting on it.
+
+---
+
+## 6c — Interval width calibrated on trees the coverage is not reported on
+
+**Found:** 04/09/2026, closing entry 6b.
+
+**Fix:** the raw parametric interval is rescaled by one multiplier. For each calibration tree the
+distance from estimate to truth is expressed in units of the raw half-width, and the multiplier is
+the target quantile of those distances, which is the reasoning conformal prediction uses.
+
+**The part that makes it honest:** the multiplier is fitted on the twenty trees used to fit the
+multiplier baseline, and coverage is reported on the sixty the estimator is scored on. Those sixty
+never inform the width. Fitting the width on the same trees the coverage is reported on would have
+produced a better-looking number that meant nothing, which is why entry 6b left it open rather than
+tuning it.
+
+**Verified:** both the uncalibrated and calibrated coverage are reported, so the size of the
+correction is visible rather than hidden.

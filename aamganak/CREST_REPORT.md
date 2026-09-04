@@ -551,6 +551,40 @@ photogrammetry recovers a mango canopy well enough in field conditions for any o
 
 ---
 
+## A note on AI use
+
+I used an AI assistant, Claude, throughout this project, and the use was substantial rather than
+incidental. This note sets out what it did and what I did, because the assessor is entitled to know
+which is which.
+
+**What the assistant did.** It wrote most of the code in the repository from my direction, including
+the canopy simulator, the estimators and the analysis scripts. It drafted sections of this report
+from my notes and my decisions about what the report should argue. It found several of the defects
+recorded in the fix log, and proposed the parametric bootstrap that replaced my first attempt at
+prediction intervals.
+
+**What I did.** I chose the problem and why it mattered, having watched the grower it affects. I set
+the aim, the objectives and the success conditions before any code existed, and I held to them when
+the results contradicted what I had expected. I decided that the aim should narrow rather than the
+simulator be adjusted when the corrected physics undercut my original framing, and I decided to stop
+tuning the simulator toward the published field figure rather than force agreement. I read every
+number against the metrics file, and I can explain the method, the statistics and the limitations of
+this work.
+
+**What I verified.** I ran the code and the test suite myself. Every figure in this report is drawn
+from the same file the text quotes, and I checked the report's numbers against it line by line.
+
+**Where the boundary is.** I am accountable for every claim here. Where I could not verify something,
+the report says so: the bibliographic details of seven references are not yet checked against the
+originals, and that check is outstanding.
+
+> **To be revised before submission.** This project runs to mid-2027 and my own share of the work
+> will grow considerably, particularly the orchard campaign, which is mine alone. This statement
+> must be rewritten to describe what is true at submission rather than what is true today, and it
+> must not overstate my contribution.
+
+---
+
 ## 9. References
 
 1. Bargoti, S. and Underwood, J. (2017) 'Deep fruit detection in orchards', *IEEE International

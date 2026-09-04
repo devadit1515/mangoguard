@@ -353,8 +353,45 @@ def _fit_density_profile(observed: dict, n_bins: int = 8):
     return q, edges, shell_volume, density
 
 
+def calibrate_interval_scale(
+    trees, level: float = 0.90, n_boot: int = 80, seed: int = 0, n_bins: int = 8
+) -> float:
+    """Find the width multiplier that makes the stated coverage the achieved coverage.
+
+    The parametric bootstrap gets the shape of the uncertainty roughly right and its size
+    wrong, over-covering at 98% to 100% where it claims 90%. Rather than adjust the
+    bootstrap until the number comes out, the raw interval is measured against trees whose
+    totals are known and rescaled by one factor.
+
+    For each calibration tree, the distance from the estimate to the truth is expressed in
+    units of the raw half-width. The multiplier that would have covered the target share of
+    those trees is that share's quantile of those distances, which is the same reasoning
+    conformal prediction uses. It must be fitted on trees the coverage is not then reported
+    on, or the number means nothing.
+    """
+    ratios = []
+    for i, (observed, truth) in enumerate(trees):
+        try:
+            lo, hi = parametric_interval(observed, n_boot, level, seed + i, n_bins, scale=1.0)
+        except Unidentifiable:
+            continue
+        half = (hi - lo) / 2.0
+        if half <= 0:
+            continue
+        centre = (hi + lo) / 2.0
+        ratios.append(abs(truth["n_fruit"] - centre) / half)
+    if len(ratios) < 5:
+        return 1.0
+    return float(np.quantile(ratios, level))
+
+
 def parametric_interval(
-    observed: dict, n_boot: int = 150, level: float = 0.90, seed: int = 0, n_bins: int = 8
+    observed: dict,
+    n_boot: int = 150,
+    level: float = 0.90,
+    seed: int = 0,
+    n_bins: int = 8,
+    scale: float = 1.0,
 ) -> tuple[float, float]:
     """Interval from re-simulating the whole fitted model, not from reshuffling the fruit.
 
@@ -429,4 +466,6 @@ def parametric_interval(
     hi = float(np.percentile(draws, 100 * (1 + level) / 2))
     # Centre the spread on the point estimate rather than on the bootstrap median.
     median = float(np.median(draws))
-    return n_hat + (lo - median), n_hat + (hi - median)
+    half = scale * (hi - lo) / 2.0
+    centre = n_hat + ((lo + hi) / 2.0 - median)
+    return centre - half, centre + half
