@@ -385,7 +385,19 @@ def fig_detector_sensitivity():
     axes[0].set_ylabel("mean absolute error (%)")
     axes[0].set_yticks([1, 2, 5, 10, 20, 50])
     axes[0].get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    axes[-1].legend(frameon=False, fontsize=8)
+    for ax in axes:
+        lo, hi = ax.get_ylim()
+        ax.set_ylim(lo, hi * 2.2)  # headroom so the legend clears the tallest bar
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles,
+        labels,
+        frameon=False,
+        fontsize=9,
+        ncol=3,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.09),
+    )
     fig.suptitle(
         "The estimator's advantage holds except with a poor detector and two viewpoints",
         y=1.04,
