@@ -26,7 +26,7 @@ Simulation stage complete. Real-orchard validation waits for the Alphonso season
 
 ```
 python scripts/run_simulation_study.py     # writes artifacts/sim_metrics.json (seed 20260903)
-python -m pytest tests -q                  # 13 tests, including the analytic physics checks
+python -m pytest tests -q                  # 20 tests, including the analytic physics checks
 ```
 
 Requires numpy, scipy and pytest.
