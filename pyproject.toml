@@ -9,8 +9,9 @@ description = "Occlusion-aware estimation of mango fruit load from a small numbe
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "AamParakh CREST project" }]
-dependencies = ["numpy>=1.26", "pandas>=2.2", "scipy>=1.11", "scikit-learn>=1.4"]
+authors = [{ name = "Devadit Jain" }]
+keywords = ["CREST", "ISEF", "mango", "fruit counting", "capture-recapture", "occlusion"]
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
 
 [project.optional-dependencies]
 viz = ["matplotlib>=3.8"]
