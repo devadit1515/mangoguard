@@ -30,6 +30,7 @@ My project asks how many mangoes a tree carries when a camera can only see some 
 7. Ethics and responsible use
 8. Reflection and next steps
 9. References
+Acknowledgements · A note on AI use
 Appendix A: glossary · Appendix B: full results and provenance · Appendix C: the mathematics
 
 ---
@@ -372,6 +373,12 @@ The habit that mattered more was reading a discouraging result as information. T
 
 ---
 
+## Acknowledgements
+
+The grower in Ratnagiri set this project in motion and will host the orchard campaign. He asked not to be named and had no involvement in the design or analysis. My father carried the conversation that started it and read the drafts of this report. The published measurements behind the calibration in Section 4 were made by researchers who harvested and counted twenty-one trees by hand, and this project leans on that work throughout.
+
+---
+
 ## A note on AI use
 
 I used an AI assistant, Claude, throughout this project, and the use was substantial rather than incidental. This note sets out what it did and what I did, because the assessor is entitled to know which is which.
@@ -423,11 +430,11 @@ I used an AI assistant, Claude, throughout this project, and the use was substan
 
 ## Appendix B: provenance and how to reproduce
 
-- **Code.** `aamganak/` in the project repository. Seed 20260903 throughout.
+- **Code.** `aamganak/` in the public repository at https://github.com/devadit1515/mangoguard. Seed 20260903 throughout.
 - **Reproduce.** `python scripts/run_simulation_study.py` regenerates every number into `artifacts/sim_metrics.json`; `python scripts/make_figures.py` redraws every figure. `pytest` runs twenty tests, including the closed-form check on the transmittance model.
 - **Population.** Eighty trees: twenty to fit the multiplier, sixty held out for scoring. Canopy radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600.
 - **Detector.** Recall rises with the share of each fruit showing, measured over nine points across the face it presents to the camera, saturating at a ceiling of 0.89 and halving at 0.85 showing. Those two values are calibrated so that the pipeline reproduces both published field detection rates, and the study re-runs its headline comparison under a better and a worse detector.
-- **Record of defects.** `FIX_LOG.md`, twelve entries with cause, fix and verification.
+- **Record of defects.** `FIX_LOG.md`, thirteen entries with cause, fix and verification, five of them open.
 - **Record of scope changes.** `PROJECT_DEFINITION.md`, amended by appending only.
 
 ## Appendix C: the mathematics
