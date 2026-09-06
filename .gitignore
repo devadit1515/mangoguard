@@ -52,3 +52,6 @@ data/_uploaded_tmp.csv
 extra_stuff/
 crest-playbook/
 draft v6.pdf
+
+# Internal writing-mechanics reference (kept on disk, not part of the submission)
+AI Writing.md
