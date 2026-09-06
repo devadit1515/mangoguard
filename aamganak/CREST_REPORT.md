@@ -76,7 +76,13 @@ This is the third attempt at the same question. I have been trying to put a numb
 | 9. Orchard campaign: scan then pick and count | Feb – May 2027 (planned) | Constrained by the fruiting season. Nothing can substitute for it. | Planned |
 | 10. Final analysis and submission | Jun – Jul 2027 (planned) | | Planned |
 
-Two things are worth saying about that table rather than leaving them to be inferred. The first is that stages 4 to 7 are compressed into two days, which is unusual and is the direct result of the two attempts before them: the dataset, the evaluation discipline and the reason for caring about occlusion all came out of stage 2. The second is that stages 8 to 10 have not happened. They are marked as plans, and the work is not finished until they have.
+Three things are worth saying about that table rather than leaving them to be inferred.
+
+First, the question never changed. Every stage from June onward serves the same aim, putting a trustworthy crop estimate in a smallholder's hands. What changed between attempts was the instrument, and each change was forced by a specific measurement rather than by a shift of interest: attempt 1 was abandoned because it produced none of its own measurements, and attempt 2 because every claim rested on hardware I had not built. The two abandonments are what made the third attempt's discipline — fix the evaluation before writing code, refuse numbers the data cannot support — into habits rather than intentions.
+
+Second, stages 4 to 7 are compressed into two days, which is unusual, and the compression is the direct result of the two attempts before them: the dataset, the evaluation discipline and the reason for caring about occlusion all came out of stage 2.
+
+Third, stages 8 to 10 have not happened. They are marked as plans, and the work is not finished until they have.
 
 The main deviation from the original plan came when the corrected simulator contradicted my starting premise. I had framed the project around recovering fruit no camera can see, and at the twelve-viewpoint protocol that was about 2% of fruit. Rather than adjusting the simulator to rescue the premise, I narrowed the aim to the question the measurement supported: how few viewpoints an estimator needs to match what naive counting achieves with many. This is recorded as a dated amendment in the project definition.
 

@@ -70,9 +70,12 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
         "§1.3, p. 3",
         [
             "A dated timeline of ten stages, reconstructed from the commit history (June to "
-            "September 2026), with three future stages marked as planned. The main deviation "
-            "was a premise correction: the corrected simulator contradicted the original "
-            "framing, and the aim narrowed rather than the simulator being adjusted.",
+            "September 2026), with three future stages marked as planned. One question has "
+            "run through all three attempts: each attempt changed the instrument rather than "
+            "the question, and each abandonment was forced by a stated measurement failure. "
+            "The main deviation was a premise correction: the corrected simulator contradicted "
+            "the original framing, and the aim narrowed rather than the simulator being "
+            "adjusted.",
         ],
     ),
     (
