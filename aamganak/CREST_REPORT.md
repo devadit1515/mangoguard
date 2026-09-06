@@ -66,7 +66,7 @@ This is the third attempt at the same question. I have been trying to put a numb
 | Stage | Dates | What happened | Status |
 |---|---|---|---|
 | 1. First attempt: advisory system from public data feeds | 8–12 Jun 2026 | Connectors for mandi prices, agrometeorological bulletins, satellite vegetation indices and pest surveillance. Abandoned: it combined other people's measurements and produced none of its own. | Done |
-| 2. Second attempt: low-cost NIR meter for dry matter | 22 Jun – 12 Jul 2026 | Wavelength selection on a public benchmark of 11,691 fruit, an eight-wavelength design, firmware and build guide. Abandoned: every claim depended on hardware I had not built. | Done |
+| 2. Second attempt: low-cost near-infrared (NIR) meter for dry matter | 22 Jun – 12 Jul 2026 | Wavelength selection on a public benchmark of 11,691 fruit, an eight-wavelength design, firmware and build guide. Abandoned: every claim depended on hardware I had not built. | Done |
 | 3. Examination period | mid-Jul – end Aug 2026 | No project work. Planned. | Done |
 | 4. Canopy simulator and estimator | 3 Sep 2026 | Aim, objectives and success conditions fixed before any code. Simulator built; three physics defects found and fixed the same day. Corrected simulator contradicted the original premise; aim narrowed. | Done |
 | 5. Reconstruction module | 3–4 Sep 2026 | Replaced a smooth proxy that was barely improving on classical methods. | Done |
@@ -189,7 +189,7 @@ Adding the wood and resetting leaf density to physical values brought one viewpo
 
 The rest of that gap closed when detection stopped being a yes or no. Once recall depended on how much of a fruit was showing, sweeping the detector's ceiling and its threshold found a setting that reproduces both published figures at once: 37% of fruit found from one viewpoint against their 40.2% from dual view, and 61% from two viewpoints against their 62.3% from video tracking. The correction factors my trees then demand, from 2.99 at one viewpoint to 1.04 at twelve, span the 1.05 to 2.43 measured across real orchards. Matching three separate published quantities from one setting is closer agreement than I expected.
 
-I am reporting that as a calibration of the whole pipeline rather than as a measurement of a detector, because the two are not the same thing. Their figure counts detections against a harvest, so it includes fruit no camera was ever pointed at, high in the tree or on the far side of a row, while my cameras see the whole tree. The calibrated setting may be standing in for losses this model does not represent. That is why the study re-runs its comparison under a better detector and a worse one, so the conclusion can be checked against the setting rather than resting on it.
+I am reporting that as a calibration of the whole pipeline rather than as a measurement of a detector, because the two are not the same thing. Their figure counts detections against a harvest, so it includes fruit no camera was ever pointed at, high in the tree or on the far side of a row, while my cameras see the whole tree. The calibrated setting may be standing in for losses this model does not represent. That is why the study re-runs its comparison under a better detector and a worse one, so the conclusion can be checked against the setting rather than resting on it. Figure 2 puts the simulator's visible and never-visible fractions against viewpoint count, with both published measurements marked.
 
 ![Figure 2](artifacts/figs/fig1_visibility_vs_views.png)
 
@@ -199,7 +199,7 @@ I am reporting that as a calibration of the whole pipeline rather than as a meas
 
 Eighty trees were drawn with canopy dimensions, leaf area density and fruit load varying across physically defensible ranges. Twenty were used to fit the multiplier, exactly as the field fits it, and sixty were held back for scoring. Each tree was scanned at every viewpoint count, so the viewpoint curve is measured within tree rather than across different trees. Every estimator saw identical detections from identical trees, so the only thing differing between them is the estimator.
 
-One structural guard is worth naming. The scan hands an estimator only quantities a reconstruction would recover, so the true canopy cannot reach an estimator even by accident, and a test asserts it. Making the mistake impossible is worth more than intending not to make it.
+One structural guard is worth naming. The scan hands an estimator only quantities a reconstruction would recover, so the true canopy cannot reach an estimator even by accident, and a test asserts it. Making the mistake impossible is worth more than intending not to make it. The detector re-run under a better and a worse detector uses thirty fresh trees per setting, ten fitting that setting's multiplier and twenty scored.
 
 ---
 
@@ -226,7 +226,7 @@ A second check falls out of this. The correction factor needed to repair the vis
 
 *Mean absolute error in total fruit count.*
 
-The reconstruction estimator is the most accurate at every viewpoint count where it is defined. Its margin over the fitted multiplier is largest in the middle of the range, at 2.3 times better on three viewpoints and 2.1 times on six, and narrows at both ends. At two viewpoints it is only 1.2 times better, because the detection histories are then too short to say much. At twelve there is little left hidden for any method to recover.
+The reconstruction estimator is the most accurate at every viewpoint count where it is defined. Its margin over the fitted multiplier is largest in the middle of the range, at 2.3 times better on three viewpoints and 2.1 times on six, and narrows at both ends. At two viewpoints it is only 1.2 times better, because the detection histories are then too short to say much. At twelve there is little left hidden for any method to recover. Figure 3 plots error against viewpoint count for every estimator.
 
 ![Figure 3](artifacts/figs/fig2_accuracy_vs_views.png)
 
@@ -240,7 +240,7 @@ An average error can hide two different failures. A method can miss by a little 
 
 ### 5.3 The same accuracy for less walking
 
-Plain counting at twelve viewpoints reaches 3.5%. The reconstruction estimator reaches 3.5% at three viewpoints and 2.9% at four, so three viewpoints with it match twelve without, and four beat them. The fitted multiplier never gets there: at twelve viewpoints it reaches 1.9%, but it needs all twelve to do it. For a grower with two hundred trees that is the difference between a morning and a day.
+Plain counting at twelve viewpoints reaches 3.5%. The reconstruction estimator reaches 3.5% at three viewpoints and 2.9% at four, so three viewpoints with it match twelve without, and four beat them. The fitted multiplier never gets there: at twelve viewpoints it reaches 1.9%, but it needs all twelve to do it. For a grower with two hundred trees that is the difference between a morning and a day. Figure 5 shows how few viewpoints each method needs to reach that line.
 
 ![Figure 5](artifacts/figs/fig3_effort_saving.png)
 
@@ -260,7 +260,7 @@ From one viewpoint every observed fruit has been seen exactly once, so the sight
 | Open | 3 | 78% | 22.2% | 9.4% | **3.8%** |
 | Open | 12 | 98% | 2.3% | 2.3% | **1.0%** |
 
-The advantage holds across canopy density rather than depending on it. What changes with density is how much there is to recover: a dense canopy at two viewpoints hides 43% of its crop from a plain count, an open one at twelve hides 2%.
+The advantage holds across canopy density rather than depending on it. What changes with density is how much there is to recover: a dense canopy at two viewpoints hides 43% of its crop from a plain count, an open one at twelve hides 2%. Figure 6 splits the same result by canopy density and viewpoint count.
 
 ![Figure 6](artifacts/figs/fig4_density_bands.png)
 
@@ -283,7 +283,7 @@ The detector is the one part of the pipeline this project does not build, so the
 
 With a poor detector and only two viewpoints the estimator loses, and loses badly: 21.9% against the multiplier's 12.5%. That combination leaves it fitting a detection model to histories that are both short and mostly empty, and a wrong model applied confidently is worse than a blunt constant applied cautiously. Three viewpoints are enough to recover the advantage even with the poor detector, and six restore it fully.
 
-This is the practical limit of the method as it stands, and it is a specific and checkable one: do not use it on two viewpoints unless the detector is known to be good.
+This is the practical limit of the method as it stands, and it is a specific and checkable one: do not use it on two viewpoints unless the detector is known to be good. Figure 7 shows the comparison under all three detectors.
 
 ![Figure 7](artifacts/figs/fig8_detector_sensitivity.png)
 
@@ -297,7 +297,7 @@ I rescaled them by a multiplier fitted on fifty trees held back for that purpose
 
 My first explanation was that the multiplier was fitted on too few trees. That turned out to be wrong, and the way I know is that I tested it: tripling the calibration set from twenty trees to fifty moved the multipliers by almost nothing, from 1.259 to 1.309 at two viewpoints and from 0.511 to 0.509 at four. A quantity that does not move when its sample triples is not the noisy part. The correction is the wrong shape rather than imprecise, because one number per viewpoint count cannot repair an interval that is miscalibrated by different amounts on different trees. Making it depend on how much of each canopy went unobserved is the next thing to try.
 
-Both series are reported for that reason, and a grower using this today should use the uncalibrated interval, which is conservative everywhere and close to correct at the protocols that matter.
+Both series are reported for that reason, and a grower using this today should use the uncalibrated interval, which is conservative everywhere and close to correct at the protocols that matter. Figure 8 shows coverage and width before and after the correction, against the 90% claimed.
 
 ![Figure 8](artifacts/figs/fig7_interval_coverage.png)
 
@@ -437,8 +437,8 @@ I used an AI assistant, Claude, throughout this project, and the use was substan
 ## Appendix B: provenance and how to reproduce
 
 - **Code.** `aamganak/` in the public repository at https://github.com/devadit1515/mangoguard. Seed 20260903 throughout.
-- **Reproduce.** `python scripts/run_simulation_study.py` regenerates every number into `artifacts/sim_metrics.json`; `python scripts/make_figures.py` redraws every figure. `pytest` runs twenty tests, including the closed-form check on the transmittance model.
-- **Population.** Eighty trees: twenty to fit the multiplier, sixty held out for scoring. Canopy radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600.
+- **Reproduce.** `python scripts/run_simulation_study.py` regenerates every number into `artifacts/sim_metrics.json`, in tens of minutes on a consumer laptop, CPU only; `python scripts/make_figures.py` redraws every figure. `pytest` runs twenty tests, including the closed-form check on the transmittance model. The detector settings are labelled optimistic and pessimistic in the code.
+- **Population.** Eighty trees: twenty to fit the multiplier, sixty held out for scoring. Canopy radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600. Fruit radial position is drawn from a Beta(3,2) distribution, a mean radius of 0.6 of the canopy, and the carved volume is estimated from 2,500 Monte Carlo points per tree.
 - **Detector.** Recall rises with the share of each fruit showing, measured over nine points across the face it presents to the camera, saturating at a ceiling of 0.89 and halving at 0.85 showing. Those two values are calibrated so that the pipeline reproduces both published field detection rates, and the study re-runs its headline comparison under a better and a worse detector.
 - **Record of defects.** `FIX_LOG.md`, thirteen entries with cause, fix and verification, five of them open.
 - **Record of scope changes.** `PROJECT_DEFINITION.md`, amended by appending only.
@@ -455,8 +455,8 @@ $$\prod_i \frac{\binom{c_i}{y_i} q^{y_i}(1-q)^{c_i-y_i}}{1-(1-q)^{c_i}},$$
 
 the truncation correcting for fruit absent from the sample by construction.
 
-**Total.** With inclusion probability $\pi_i = 1 - (1-q)^{c_i}$, the Horvitz-Thompson total over observable fruit is $\sum_i \pi_i^{-1}$ [5]. Writing $V_b$ for the volume of canopy shell $b$ and $u_b$ for the share of it no viewpoint reached, the fruit density measured in that shell is $\rho_b = \left(\sum_{i \in b} \pi_i^{-1}\right) / (V_b(1-u_b))$, and the estimate is $\hat{N} = \sum_b \rho_b V_b$. Shells with no observable volume take $\rho$ from a log-linear fit across the shells that have it.
+**Total.** With inclusion probability $\pi_i = 1 - (1-q)^{c_i}$, the Horvitz-Thompson total over observable fruit is $\sum_i \pi_i^{-1}$ [5]. Writing $V_b$ for the volume of canopy shell $b$ and $u_b$ for the share of it no viewpoint reached, the fruit density measured in that shell is $\rho_b = \left(\sum_{i \in b} \pi_i^{-1}\right) / (V_b(1-u_b))$, and the estimate is $\hat{N} = \sum_b \rho_b V_b$, over eight radial shells. Shells with no observable volume take $\rho$ from a log-linear fit across the shells that have it.
 
-**Intervals.** By parametric bootstrap: a synthetic tree is drawn with $\hat{N}$ fruit positioned by the fitted density profile, each inheriting the clear-view count of the canopy point it sits at and detected at rate $q$, and the estimator is re-run. Fruit that go undetected drop out as they do in the real data, so the truncation is reproduced rather than assumed away [12].
+**Intervals.** By parametric bootstrap with eighty replicates: a synthetic tree is drawn with $\hat{N}$ fruit positioned by the fitted density profile, each inheriting the clear-view count of the canopy point it sits at and detected at rate $q$, and the estimator is re-run. Fruit that go undetected drop out as they do in the real data, so the truncation is reproduced rather than assumed away [12].
 
 *End of report.*

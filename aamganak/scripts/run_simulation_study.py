@@ -311,7 +311,7 @@ def main():
         print(line)
     print()
     print(f"naive MAPE at {REFERENCE_VIEWS} views = {ref:.2f}%; views needed to match: {matches}")
-    ic = out["interval_coverage_at_2_views"]
+    ic = out["interval_coverage"]["2"]["uncalibrated"]
     print(
         f"90% interval coverage at 2 views: {ic['achieved']:.2f} (width {ic['mean_width_pct_of_truth']:.1f}%)"
     )
