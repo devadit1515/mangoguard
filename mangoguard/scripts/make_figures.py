@@ -24,9 +24,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.patches import Patch  # noqa: E402
 
-from aamganak import canopy as C  # noqa: E402
-from aamganak import reconstruct as R  # noqa: E402
-from aamganak import visibility as V  # noqa: E402
+from mangoguard import canopy as C  # noqa: E402
+from mangoguard import reconstruct as R  # noqa: E402
+from mangoguard import visibility as V  # noqa: E402
 
 FIGS = ROOT / "artifacts" / "figs"
 FIGS.mkdir(parents=True, exist_ok=True)

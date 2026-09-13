@@ -12,7 +12,7 @@
 |---|---|
 | Student / team member's first name | Devadit |
 | CREST Award level | **Gold** |
-| Project title | Counting Fruit a Camera Cannot See: Estimating Mango Load from Few Viewpoints |
+| Project title | Occlusion-Aware Estimation of Mango Fruit Load from Sparse Camera Viewpoints |
 | Mentor name | None. Independent project, see the note at the end. |
 
 ---

@@ -1,4 +1,4 @@
-# AamGanak
+# MangoGuard
 
 Estimating how many mangoes a tree carries from a short walk around it with a camera,
 including the fruit no viewpoint ever sees.
@@ -6,10 +6,10 @@ including the fruit no viewpoint ever sees.
 An independent research project by Devadit Jain, submitted for a CREST Gold Award and
 then to Regeneron ISEF.
 
-The work lives in **[`aamganak/`](aamganak/)**. Start with
-[`aamganak/PROJECT_DEFINITION.md`](aamganak/PROJECT_DEFINITION.md) for the aim, the
+The work lives in **[`mangoguard/`](mangoguard/)**. Start with
+[`mangoguard/PROJECT_DEFINITION.md`](mangoguard/PROJECT_DEFINITION.md) for the aim, the
 objectives and the success conditions that were fixed before any code was written, and
-[`aamganak/FIX_LOG.md`](aamganak/FIX_LOG.md) for what went wrong along the way.
+[`mangoguard/FIX_LOG.md`](mangoguard/FIX_LOG.md) for what went wrong along the way.
 
 ## The question
 

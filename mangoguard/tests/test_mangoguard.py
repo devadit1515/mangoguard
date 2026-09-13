@@ -14,9 +14,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from aamganak import canopy as C  # noqa: E402
-from aamganak import estimators as E  # noqa: E402
-from aamganak import visibility as V  # noqa: E402
+from mangoguard import canopy as C  # noqa: E402
+from mangoguard import estimators as E  # noqa: E402
+from mangoguard import visibility as V  # noqa: E402
 
 
 # ---- geometry ----------------------------------------------------------------------
@@ -175,7 +175,7 @@ def test_unknown_region_grows_as_viewpoints_are_removed():
     rng = np.random.default_rng(21)
     params = C.TreeParams(leaf_area_density=1.8, n_fruit=200)
     grid = V.FoliageGrid(params, rng)
-    from aamganak import reconstruct as R
+    from mangoguard import reconstruct as R
 
     few = R.ReconstructedScene(params, V.camera_ring(2), grid, n_samples=2500, rng=rng)
     many = R.ReconstructedScene(params, V.camera_ring(12), grid, n_samples=2500, rng=rng)
@@ -186,7 +186,7 @@ def test_unknown_and_observed_volume_sum_to_the_canopy():
     rng = np.random.default_rng(22)
     params = C.TreeParams(leaf_area_density=1.5, n_fruit=150)
     grid = V.FoliageGrid(params, rng)
-    from aamganak import reconstruct as R
+    from mangoguard import reconstruct as R
 
     scene = R.ReconstructedScene(params, V.camera_ring(4), grid, n_samples=2000, rng=rng)
     assert scene.unknown_volume + scene.observed_volume == pytest.approx(params.volume, rel=1e-9)

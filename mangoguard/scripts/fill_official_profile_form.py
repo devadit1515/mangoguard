@@ -20,7 +20,7 @@ from docx import Document
 ROOT = Path(__file__).resolve().parents[1]
 FORM = ROOT / "Corrected Student Profile Form.docx"
 
-TITLE = "Counting Fruit a Camera Cannot See: Estimating Mango Load from Few Viewpoints"
+TITLE = "Occlusion-Aware Estimation of Mango Fruit Load from Sparse Camera Viewpoints"
 
 # (criteria row index in table 1, where-column text, notes paragraphs)
 CRITERIA: list[tuple[int, str, list[str]]] = [

@@ -1,4 +1,4 @@
-# Counting Fruit a Camera Cannot See: Estimating Mango Load from Few Viewpoints
+# Occlusion-Aware Estimation of Mango Fruit Load from Sparse Camera Viewpoints
 
 **CREST Gold Award: project report.**
 
@@ -438,7 +438,7 @@ I used an AI assistant, Claude, throughout this project, and the use was substan
 
 ## Appendix B: provenance and how to reproduce
 
-- **Code.** `aamganak/` in the public repository at https://github.com/devadit1515/mangoguard. Seed 20260903 throughout.
+- **Code.** Present in the public repository at https://github.com/devadit1515/mangoguard. Seed 20260903 throughout.
 - **Reproduce.** `python scripts/run_simulation_study.py` regenerates every number into `artifacts/sim_metrics.json`, in tens of minutes on a consumer laptop, CPU only; `python scripts/make_figures.py` redraws every figure. `pytest` runs twenty tests, including the closed-form check on the transmittance model. The detector settings are labelled optimistic and pessimistic in the code.
 - **Population.** A hundred and thirty trees: twenty to fit the multiplier, sixty held out for scoring, fifty drawn only to calibrate interval width. A further thirty per detector setting for the sensitivity experiment, ten of those fitting that setting's multiplier. Canopy radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600. Fruit radial position is drawn from a Beta(3,2) distribution, a mean radius of 0.6 of the canopy, and the carved volume is estimated from 2,500 Monte Carlo points per tree.
 - **Detector.** Recall rises with the share of each fruit showing, measured over nine points across the face it presents to the camera, saturating at a ceiling of 0.89 and halving at 0.85 showing. Those two values are calibrated so that the pipeline reproduces both published field detection rates, and the study re-runs its headline comparison under a better and a worse detector.

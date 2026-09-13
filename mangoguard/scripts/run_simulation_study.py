@@ -28,9 +28,9 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from aamganak import canopy as C  # noqa: E402
-from aamganak import estimators as E  # noqa: E402
-from aamganak import visibility as V  # noqa: E402
+from mangoguard import canopy as C  # noqa: E402
+from mangoguard import estimators as E  # noqa: E402
+from mangoguard import visibility as V  # noqa: E402
 
 SEED = 20260903
 N_CAL, N_TEST = 20, 60

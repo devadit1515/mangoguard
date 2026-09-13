@@ -1,4 +1,4 @@
-# AamGanak
+# MangoGuard
 
 Estimating how many mangoes a tree carries from a short walk around it with a camera,
 including the fruit no viewpoint ever sees.
@@ -34,9 +34,9 @@ Requires numpy, scipy and pytest.
 ## Layout
 
 ```
-src/aamganak/canopy.py       canopy geometry, fruit placement, Beer-Lambert attenuation
-src/aamganak/visibility.py   the foliage grid, ray marching, detection histories
-src/aamganak/estimators.py   naive, fixed multiplier, capture-recapture, Chao,
+src/mangoguard/canopy.py       canopy geometry, fruit placement, Beer-Lambert attenuation
+src/mangoguard/visibility.py   the foliage grid, ray marching, detection histories
+src/mangoguard/estimators.py   naive, fixed multiplier, capture-recapture, Chao,
                              Horvitz-Thompson, geometry-informed
 scripts/                     the study that scores them all on identical trees
 tests/                       analytic checks on the simulator, behaviour checks on estimators

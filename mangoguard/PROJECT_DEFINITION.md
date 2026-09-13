@@ -1,4 +1,4 @@
-# AamGanak — project definition
+# MangoGuard — project definition
 
 > Written before any code, and not edited to match results afterwards. Changes to this file are
 > made by appending a dated amendment at the bottom, never by rewriting what is above.

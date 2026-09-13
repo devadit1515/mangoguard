@@ -1,8 +1,9 @@
-# CLAUDE.md — AamGanak (Devadit's CREST Gold submission, then ISEF)
+# CLAUDE.md — MangoGuard (Devadit's CREST Gold submission, then ISEF)
 
-> **Running project memory.** Self-sufficient. The previous two projects (MangoGuard, an advisory
-> system from public data feeds; AamParakh, an eight-LED NIR dry-matter meter) are archived in
-> `extra_stuff/aamparakh_archive/` and in git history.
+> **Running project memory.** Self-sufficient. Two earlier attempts at the same question, an
+> advisory system assembled from public data feeds and an eight-wavelength near-infrared
+> dry-matter meter, are archived in `extra_stuff/aamparakh_archive/` and in git history. The
+> repository keeps the name `mangoguard` from the first of them.
 
 ## What this is, and who it is for
 
@@ -16,12 +17,13 @@ and not written for anyone else to imitate. It targets, in order:
 
 Because he submits it under his own name and will defend it in conversation, the binding
 constraint is that he must be able to explain every part of it. Anything he cannot explain does
-not go in. `aamganak/UNDERSTANDING_THE_STATISTICS.md` exists for exactly that and is not submitted.
+not go in. `mangoguard/UNDERSTANDING_THE_STATISTICS.md` exists for exactly that and is not submitted.
 
 ## The project
 
-**AamGanak (आम गणक, "mango counter")** — estimating how many mangoes a tree carries from a short
-walk around it with a camera, including the fruit no viewpoint ever sees.
+**Occlusion-Aware Estimation of Mango Fruit Load from Sparse Camera Viewpoints.** Estimating how
+many mangoes a tree carries from a short walk around it with a camera, including the fruit no
+viewpoint ever sees.
 
 Fruit detectors already find the visible mangoes in an image almost perfectly. A tree hides most
 of its own crop, so the visible count is not the crop, and published practice multiplies it by a
@@ -50,7 +52,7 @@ says how much volume no camera could see into. That transfer is the central idea
 
 ## Working state (13/09/2026)
 
-Simulation stage complete and green. Lives in `aamganak/`.
+Simulation stage complete and green. Lives in `mangoguard/`.
 
 - `CREST_REPORT.md` — ~7,200 words, 8 sections plus Acknowledgements, AI note and three appendices.
 - `STUDENT_PROFILE.md` — markdown mirror; `Corrected Student Profile Form.docx` is the real filled
@@ -58,12 +60,12 @@ Simulation stage complete and green. Lives in `aamganak/`.
 - `PROJECT_DEFINITION.md` — aim, five objectives with "done when" tests, pre-registered conditions
   S1–S5 with verdicts. Amended by appending only.
 - `FIX_LOG.md` — **thirteen entries, four still open.**
-- `src/aamganak/` — `canopy` (geometry, wood, Beer-Lambert), `visibility` (clumped foliage grid,
+- `src/mangoguard/` — `canopy` (geometry, wood, Beer-Lambert), `visibility` (clumped foliage grid,
   ray marching, showing-fraction detector), `reconstruct` (carved free/unknown volume),
   `estimators` (naive, multiplier, capture-recapture, Chao, Horvitz-Thompson, canopy-depth,
   reconstruction-informed, parametric intervals).
 - `scripts/run_simulation_study.py` → `artifacts/sim_metrics.json`, seed 20260903, tens of minutes.
-- `tests/test_aamganak.py` — **20 passing**, including the closed-form Beer-Lambert check.
+- `tests/test_mangoguard.py` — **20 passing**, including the closed-form Beer-Lambert check.
 
 ## Results so far (simulation only; cite from sim_metrics.json, never from memory)
 
@@ -107,7 +109,7 @@ criteria; the Student Profile Form carries the mapping.
 
 ## Change log
 
-- 2026-09-03: Replaced AamParakh with **AamGanak**. Simulator, estimators, viewpoint study, tests.
+- 2026-09-03: Started the current project. Simulator, estimators, viewpoint study, tests.
   Three simulator physics defects found and fixed; aim narrowed when the corrected simulator
   contradicted the premise.
 - 2026-09-04: Reconstruction module and the estimator built on it. Detector calibrated against
