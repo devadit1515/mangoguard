@@ -26,7 +26,7 @@ TITLE = "Counting Fruit a Camera Cannot See: Estimating Mango Load from Few View
 CRITERIA: list[tuple[int, str, list[str]]] = [
     (
         2,
-        "§1.1–1.2, p. 2; §5.8, p. 9",
+        "§1.1–1.2, p. 2; §5.8, p. 17",
         [
             "One testable aim sentence split into five numbered objectives, each with an explicit "
             '"done when" test. Section 5.8 revisits all five against the results and states '
@@ -36,7 +36,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         3,
-        "§1 opening, p. 1; §6.1, p. 8",
+        "§1 opening, p. 2; §6.1, pp. 17–18",
         [
             "The grower in Ratnagiri who hired eleven pickers for a job that needed six. India "
             "grows around 22 million tonnes of mango a year and about 86% of holdings are under "
@@ -47,7 +47,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         4,
-        "§3.1, p. 4",
+        "§3.1, pp. 6–7",
         [
             "Four genuinely different approaches compared in a trade-off table, each with the "
             "reason it was eliminated or chosen. The fitted multiplier was not discarded but "
@@ -56,7 +56,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         5,
-        "§3, pp. 4–5; Appendix B, p. 12",
+        "§3, pp. 6–9; Appendix B, p. 23",
         [
             "The chosen route is the only one that uses information the images already contain: "
             "a fruit seen from three viewpoints out of twelve tells you something a fruit seen "
@@ -67,7 +67,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         6,
-        "§1.3, p. 3",
+        "§1.3, pp. 3–4",
         [
             "A dated timeline of ten stages, reconstructed from the commit history (June to "
             "September 2026), with three future stages marked as planned. One question has "
@@ -80,7 +80,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         8,
-        "§1.3, p. 3; Appendix B, p. 12",
+        "§1.3, pp. 3–4; Appendix B, p. 23",
         [
             "Pinned tool versions (Python 3.11, NumPy 1.26, SciPy 1.11, matplotlib 3.8, pytest 8), "
             "a fixed seed, and the commands that reproduce every number. The cooperating grower "
@@ -90,7 +90,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         9,
-        "§2, p. 3; References, pp. 10–11",
+        "§2, pp. 5–6; References, pp. 21–22",
         [
             "The background is built as an argument: detection is solved (F1 0.968), the gap "
             "between seen and actual is measured (40.2% recovered), the field repairs it with a "
@@ -100,7 +100,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         11,
-        "§6.1, p. 8; §6.3, p. 9; §6.5, p. 9",
+        "§6.1, pp. 17–18; §6.3, p. 18; §6.5, p. 19",
         [
             "Section 6.1 answers the aim with numbers, then bounds itself: the result is "
             "measured on simulated trees shown to be easier than a real hedgerow. Section 6.3 "
@@ -110,7 +110,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         12,
-        "§6.2, p. 9; §4, pp. 6–7; §5.6, p. 8",
+        "§6.2, p. 18; §4, pp. 9–11; §5.6, pp. 15–16",
         [
             "Replacing a smooth canopy-depth proxy with the reconstruction's measurement of "
             "unobserved volume roughly halved the error at two viewpoints. Separating the "
@@ -121,7 +121,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         13,
-        "§8, p. 10",
+        "§8, p. 20",
         [
             "The simulated trees had no trunks for two days and every internal check passed, "
             "because the checks and the simulator shared the same assumptions; a published "
@@ -131,7 +131,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         15,
-        "§3.2–3.3, pp. 4–5; Appendix C, pp. 13–14",
+        "§3.2–3.3, pp. 7–8; Appendix C, pp. 23–24",
         [
             "The body explains why re-sightings carry information about fruit never seen, and "
             "the blind spot: a fruit with no chance of being seen leaves no trace. Appendix C "
@@ -141,7 +141,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         16,
-        "§7, pp. 9–10",
+        "§7, pp. 19–20",
         [
             "Which error to prefer, since over-estimates idle pickers and under-estimates leave "
             "fruit past ripeness. Whose harvest is destroyed for ground truth, agreed in "
@@ -152,7 +152,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         17,
-        "§6.4, p. 9",
+        "§6.4, pp. 18–19",
         [
             "Treating fruit counting as a wildlife abundance problem: the methods ecologists use "
             "for animals that hide map onto a camera walked around a tree, and I have not found "
@@ -162,7 +162,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         18,
-        "§4.1–4.3, pp. 6–7; FIX_LOG.md in the repository",
+        "§4.1–4.3, pp. 9–11; FIX_LOG.md in the repository",
         [
             "Three problems told in full with cause, fix and verification, a fourth that was a "
             "wrong premise rather than a code defect, and a fifth that was a wrong diagnosis I "
@@ -171,7 +171,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         19,
-        "Whole report; Appendix A, p. 11",
+        "Whole report; Appendix A, pp. 22–23",
         [
             "The body is written to be followed without a statistics background, with one "
             "everyday comparison per hard idea. All mathematics is quarantined in Appendix C "
