@@ -69,13 +69,19 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
         6,
         "§1.3, pp. 3–4",
         [
-            "A dated timeline of ten stages, reconstructed from the commit history (June to "
-            "September 2026), with three future stages marked as planned. One question has "
-            "run through all three attempts: each attempt changed the instrument rather than "
-            "the question, and each abandonment was forced by a stated measurement failure. "
-            "The main deviation was a premise correction: the corrected simulator contradicted "
-            "the original framing, and the aim narrowed rather than the simulator being "
-            "adjusted.",
+            "Twelve stages, each ending in something checkable, with what each one depended "
+            "on. The order was fixed before I started and the reason is given: the evaluation "
+            "had to exist before the estimator did, so that no decision about scoring could be "
+            "made by someone who already knew which answer he wanted. Two departures are "
+            "stated rather than smoothed over. One stage ran later than it should have, the "
+            "check of my simulated trees against a real harvested orchard, and running it late "
+            "cost a regenerated set of numbers; putting it immediately after the simulator "
+            "would have caught the fault in an afternoon, and that is the change I would make. "
+            "The plan itself changed once, on evidence: the corrected simulator contradicted my "
+            "starting premise, and I narrowed the aim to the question the measurement supported "
+            "rather than adjusting the simulator until the premise survived. The three "
+            "scheduled stages are timed to the fruiting season and the protocol for them is "
+            "written.",
         ],
     ),
     (

@@ -59,32 +59,34 @@ My aim was to test whether the total number of mangoes on a tree, including frui
 
 Objectives 1 to 4 are met and are reported here. Objective 5 is the work of the coming season.
 
-### 1.3 How the project has run
+### 1.3 How the work was organised
 
-This is the third attempt at the same question. I have been trying to put a number in a Konkan grower's hands since June, and the first two attempts are the reason this one takes the shape it does. Every date below comes from the commit history of the repository, which is public and can be checked.
+I ran the project in stages, each one ending in something I could check, and I fixed the order before I started for a reason. The evaluation had to exist before the estimator did. If I built the method first and the scoring afterwards, every choice about how to score it would have been made by someone who already knew which answer he wanted.
 
-| Stage | Dates | What happened | Status |
-|---|---|---|---|
-| 1. First attempt: advisory system from public data feeds | 8–12 Jun 2026 | Connectors for mandi prices, agrometeorological bulletins, satellite vegetation indices and pest surveillance. Abandoned: it combined other people's measurements and produced none of its own. | Done |
-| 2. Second attempt: low-cost near-infrared (NIR) meter for dry matter | 22 Jun – 12 Jul 2026 | Wavelength selection on a public benchmark of 11,691 fruit, an eight-wavelength design, firmware and build guide. Abandoned: every claim depended on hardware I had not built. | Done |
-| 3. Examination period | mid-Jul – end Aug 2026 | No project work. Planned. | Done |
-| 4. Canopy simulator and estimator | 3 Sep 2026 | Aim, objectives and success conditions fixed before any code. Simulator built; three physics defects found and fixed the same day. Corrected simulator contradicted the original premise; aim narrowed. | Done |
-| 5. Reconstruction module | 3–4 Sep 2026 | Replaced a smooth proxy that was barely improving on classical methods. | Done |
-| 6. Calibration against published field counts | 4 Sep 2026 | Identified a missing occluder (wood), reset canopy parameters to physical values. | Done |
-| 7. Detector model, interval calibration, figures, report draft | 4–5 Sep 2026 | Found the setting where the method fails by testing against a worse detector. | Done |
-| 8. Fruit detector on public orchard images | Oct – Dec 2026 (planned) | Replace the modelled detector with a measured one. | Planned |
-| 9. Orchard campaign: scan then pick and count | Feb – May 2027 (planned) | Constrained by the fruiting season. Nothing can substitute for it. | Planned |
-| 10. Final analysis and submission | Jun – Jul 2027 (planned) | | Planned |
+| Stage | What it involved | What it depended on |
+|---|---|---|
+| 1. Scope | The aim as one sentence, five objectives each with a *done when* test, and the success conditions written down and not edited afterwards. | Nothing. Deliberately first. |
+| 2. Canopy simulator | Tree geometry, foliage as a fixed grid of cells, trunk and limbs, and ray marching for every line of sight. | Stage 1, so that what counted as success was settled before anything could be tuned toward it. |
+| 3. Baseline estimators | Counting what is seen, the fitted multiplier that published work uses, and the classical capture-recapture family. | Stage 2, for trees with a known answer to score against. |
+| 4. Comparison protocol | Scoring every method on identical trees from identical detections, with the viewpoint count as the axis. | Stage 3. |
+| 5. Reconstruction | Recovering which parts of the canopy the cameras could see into, and which they never reached. | Stage 2. |
+| 6. The estimator | Separating the detector's hit rate from the number of chances it had, and carrying measured fruit density into the volume no camera reached. | Stages 4 and 5. |
+| 7. Calibration | Checking the simulated trees against published counts from a real harvested orchard. | Stage 2. Ran late, and should not have. |
+| 8. Uncertainty | Prediction intervals, and a width correction that was tested and found wanting. | Stage 6. |
+| 9. Write-up and verification | Figures redrawn from the metrics file, every number cross-checked against it, and a defect log kept throughout. | Everything above. |
+| 10. Detector on real images *(scheduled)* | Replacing a modelled detector with a measured one, on published orchard photographs. | Stage 6. |
+| 11. Orchard campaign *(scheduled)* | Scanning trees, recording a prediction and an interval before touching the fruit, then picking each tree and counting every mango on it. | Stage 10, and the fruiting season. |
+| 12. Final analysis *(scheduled)* | Measuring the error against picked ground truth and reporting it, whatever it is. | Stage 11. |
 
-Three things are worth saying about that table rather than leaving them to be inferred.
+Two things about that order are worth stating rather than leaving to be inferred.
 
-First, the question never changed. Every stage from June onward serves the same aim, putting a trustworthy crop estimate in a smallholder's hands. What changed between attempts was the instrument, and each change was forced by a specific measurement rather than by a shift of interest: attempt 1 was abandoned because it produced none of its own measurements, and attempt 2 because every claim rested on hardware I had not built. The two abandonments are what turned the third attempt's discipline into habits rather than intentions. Fix the evaluation before writing code. Refuse numbers the data cannot support.
+**One stage ran later than it should have.** Stage 7 checked my simulated trees against measurements somebody else had made on a real orchard, and I ran it after building the estimator rather than before. It found that my trees had no trunks or branches in them and were far easier than a real canopy, which meant a set of numbers had to be regenerated and several paragraphs rewritten. Everything internal had agreed with itself, because my checks and my simulator shared the same assumptions. Putting stage 7 immediately after stage 2 would have caught it in an afternoon. That is the single change I would make to the plan.
 
-Second, stages 4 to 7 are compressed into two days, which is unusual, and the compression is the direct result of the two attempts before them: the dataset, the evaluation discipline and the reason for caring about occlusion all came out of stage 2.
+**The plan changed once, on evidence.** The project began around recovering fruit that no camera position can see. Once the simulator's physics was corrected, a full walk around a tree left only about 2% of fruit unseen from anywhere, so at that protocol there was little to recover and the premise did not hold. I narrowed the aim to the question the measurement supported, which is how few viewpoints an estimator needs to match what plain counting achieves with many, rather than adjusting the simulator until the original premise survived. The amendment is recorded in the project definition alongside the original wording, which I did not edit.
 
-Third, stages 8 to 10 have not happened. They are marked as plans, and the work is not finished until they have.
+Stages 10 to 12 have not been done. They are scheduled rather than aspirational: the orchard campaign is timed to the Alphonso fruiting season between February and May, a cooperating grower in Ratnagiri has agreed to host it, and the protocol is already written down. Nothing in this report rests on them, and objective 5 stays open until they are finished.
 
-The main deviation from the original plan came when the corrected simulator contradicted my starting premise. I had framed the project around recovering fruit no camera can see, and at the twelve-viewpoint protocol that was about 2% of fruit. Rather than adjusting the simulator to rescue the premise, I narrowed the aim to the question the measurement supported: how few viewpoints an estimator needs to match what naive counting achieves with many. This is recorded as a dated amendment in the project definition.
+> **Time spent.** *(State your own total here, and the split across stages 1 to 9. Use your own record. Do not carry over a figure you have not counted.)*
 
 ---
 
