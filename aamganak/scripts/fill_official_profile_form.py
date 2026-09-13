@@ -47,7 +47,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         4,
-        "§3.1, pp. 6–7",
+        "§3.1, p. 6",
         [
             "Four genuinely different approaches compared in a trade-off table, each with the "
             "reason it was eliminated or chosen. The fitted multiplier was not discarded but "
@@ -56,7 +56,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         5,
-        "§3, pp. 6–9; Appendix B, p. 23",
+        "§3, pp. 6–8; Appendix B, p. 23",
         [
             "The chosen route is the only one that uses information the images already contain: "
             "a fruit seen from three viewpoints out of twelve tells you something a fruit seen "
@@ -116,7 +116,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         12,
-        "§6.2, p. 18; §4, pp. 9–11; §5.6, pp. 15–16",
+        "§6.2, p. 18; §4, pp. 9–10; §5.6, pp. 15–16",
         [
             "Replacing a smooth canopy-depth proxy with the reconstruction's measurement of "
             "unobserved volume roughly halved the error at two viewpoints. Separating the "
@@ -137,7 +137,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         15,
-        "§3.2–3.3, pp. 7–8; Appendix C, pp. 23–24",
+        "§3.2–3.3, pp. 6–7; Appendix C, pp. 23–24",
         [
             "The body explains why re-sightings carry information about fruit never seen, and "
             "the blind spot: a fruit with no chance of being seen leaves no trace. Appendix C "
@@ -168,7 +168,7 @@ CRITERIA: list[tuple[int, str, list[str]]] = [
     ),
     (
         18,
-        "§4.1–4.3, pp. 9–11; FIX_LOG.md in the repository",
+        "§4.1–4.3, pp. 9–10; FIX_LOG.md in the repository",
         [
             "Three problems told in full with cause, fix and verification, a fourth that was a "
             "wrong premise rather than a code defect, and a fifth that was a wrong diagnosis I "

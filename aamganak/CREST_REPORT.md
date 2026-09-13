@@ -86,8 +86,6 @@ Two things about that order are worth stating rather than leaving to be inferred
 
 Stages 10 to 12 have not been done. They are scheduled rather than aspirational: the orchard campaign is timed to the Alphonso fruiting season between February and May, a cooperating grower in Ratnagiri has agreed to host it, and the protocol is already written down. Nothing in this report rests on them, and objective 5 stays open until they are finished.
 
-> **Time spent.** *(State your own total here, and the split across stages 1 to 9. Use your own record. Do not carry over a figure you have not counted.)*
-
 ---
 
 ## 2. Background
