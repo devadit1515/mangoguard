@@ -78,7 +78,7 @@ This is the third attempt at the same question. I have been trying to put a numb
 
 Three things are worth saying about that table rather than leaving them to be inferred.
 
-First, the question never changed. Every stage from June onward serves the same aim, putting a trustworthy crop estimate in a smallholder's hands. What changed between attempts was the instrument, and each change was forced by a specific measurement rather than by a shift of interest: attempt 1 was abandoned because it produced none of its own measurements, and attempt 2 because every claim rested on hardware I had not built. The two abandonments are what made the third attempt's discipline — fix the evaluation before writing code, refuse numbers the data cannot support — into habits rather than intentions.
+First, the question never changed. Every stage from June onward serves the same aim, putting a trustworthy crop estimate in a smallholder's hands. What changed between attempts was the instrument, and each change was forced by a specific measurement rather than by a shift of interest: attempt 1 was abandoned because it produced none of its own measurements, and attempt 2 because every claim rested on hardware I had not built. The two abandonments are what turned the third attempt's discipline into habits rather than intentions. Fix the evaluation before writing code. Refuse numbers the data cannot support.
 
 Second, stages 4 to 7 are compressed into two days, which is unusual, and the compression is the direct result of the two attempts before them: the dataset, the evaluation discipline and the reason for caring about occlusion all came out of stage 2.
 
@@ -197,7 +197,9 @@ I am reporting that as a calibration of the whole pipeline rather than as a meas
 
 ### 4.4 The protocol
 
-Eighty trees were drawn with canopy dimensions, leaf area density and fruit load varying across physically defensible ranges. Twenty were used to fit the multiplier, exactly as the field fits it, and sixty were held back for scoring. Each tree was scanned at every viewpoint count, so the viewpoint curve is measured within tree rather than across different trees. Every estimator saw identical detections from identical trees, so the only thing differing between them is the estimator.
+A hundred and thirty trees were drawn with canopy dimensions, leaf area density and fruit load varying across physically defensible ranges, and split three ways. Twenty fit the multiplier, exactly as the field fits it. Sixty were held back for scoring, and every number in the next section comes from those sixty. Fifty more were drawn solely to calibrate the width of the prediction intervals, so that the trees the coverage is reported on never inform how wide the intervals are. Each tree was scanned at every viewpoint count, so the viewpoint curve is measured within tree rather than across different trees. Every estimator saw identical detections from identical trees, so the only thing differing between them is the estimator.
+
+The detector sensitivity in Section 5.6 is a separate experiment with its own trees, thirty per detector setting, of which the first ten fit that setting's multiplier and the remaining twenty are scored.
 
 One structural guard is worth naming. The scan hands an estimator only quantities a reconstruction would recover, so the true canopy cannot reach an estimator even by accident, and a test asserts it. Making the mistake impossible is worth more than intending not to make it. The detector re-run under a better and a worse detector uses thirty fresh trees per setting, ten fitting that setting's multiplier and twenty scored.
 
@@ -438,9 +440,9 @@ I used an AI assistant, Claude, throughout this project, and the use was substan
 
 - **Code.** `aamganak/` in the public repository at https://github.com/devadit1515/mangoguard. Seed 20260903 throughout.
 - **Reproduce.** `python scripts/run_simulation_study.py` regenerates every number into `artifacts/sim_metrics.json`, in tens of minutes on a consumer laptop, CPU only; `python scripts/make_figures.py` redraws every figure. `pytest` runs twenty tests, including the closed-form check on the transmittance model. The detector settings are labelled optimistic and pessimistic in the code.
-- **Population.** Eighty trees: twenty to fit the multiplier, sixty held out for scoring. Canopy radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600. Fruit radial position is drawn from a Beta(3,2) distribution, a mean radius of 0.6 of the canopy, and the carved volume is estimated from 2,500 Monte Carlo points per tree.
+- **Population.** A hundred and thirty trees: twenty to fit the multiplier, sixty held out for scoring, fifty drawn only to calibrate interval width. A further thirty per detector setting for the sensitivity experiment, ten of those fitting that setting's multiplier. Canopy radius 1.8 to 2.8 m, half-height 1.4 to 2.2 m, leaf area density 0.8 to 2.0, fruit load 120 to 600. Fruit radial position is drawn from a Beta(3,2) distribution, a mean radius of 0.6 of the canopy, and the carved volume is estimated from 2,500 Monte Carlo points per tree.
 - **Detector.** Recall rises with the share of each fruit showing, measured over nine points across the face it presents to the camera, saturating at a ceiling of 0.89 and halving at 0.85 showing. Those two values are calibrated so that the pipeline reproduces both published field detection rates, and the study re-runs its headline comparison under a better and a worse detector.
-- **Record of defects.** `FIX_LOG.md`, thirteen entries with cause, fix and verification, five of them open.
+- **Record of defects.** `FIX_LOG.md`, thirteen entries with cause, fix and verification, four of them open.
 - **Record of scope changes.** `PROJECT_DEFINITION.md`, amended by appending only.
 
 ## Appendix C: the mathematics

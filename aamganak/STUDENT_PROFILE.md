@@ -7,17 +7,15 @@
 | | |
 |---|---|
 | Student / team member's first name | Devadit |
-| Age at submission | *(fill from the official form)* |
-| Time spent on the project | *(fill from your log; the three attempts span 8 June – 5 September 2026 per the report's timeline)* |
 | CREST Award level | **Gold** |
 | Project title | Counting Fruit a Camera Cannot See: Estimating Mango Load from Few Viewpoints |
-| Mentor name | None — independent project (see the note at the end) |
+| Mentor name | None. Independent project, see the note at the end. |
 
 ---
 
 ## Criteria checklist
 
-*Notes to the assessor are optional and deliberately brief — the evidence is in the report section named.*
+*Notes to the assessor are optional and deliberately brief, since the evidence is in the report section named.*
 
 ### 1 — Planning your project
 
